@@ -27,7 +27,7 @@ class ParsedownToc extends Parsedown {
         $text = trim($text, "\n");
 
         // Save a copy of the document
-        $this->fullDoc = $text;
+        $this->fullDocument = $text;
 
         // split text into lines
         $lines = explode("\n", $text);
@@ -102,7 +102,7 @@ class ParsedownToc extends Parsedown {
             $headerLines = array();
             $prevLine = '';
 
-            $cleanDoc = preg_replace('/<!--(.|\s)*?-->/', '', $this->fullDoc);
+            $cleanDoc = preg_replace('/<!--(.|\s)*?-->/', '', $this->fullDocument);
 
             // split text into lines
             $lines = explode("\n", $cleanDoc);
