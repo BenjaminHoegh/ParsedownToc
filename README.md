@@ -1,3 +1,6 @@
+![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/parsedown-toc.svg?style=flat-square)
+![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedown-toc.svg?style=flat-square)
+
 # Parsedown-toc
 Table of content for Parsedown
 
