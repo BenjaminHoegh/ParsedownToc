@@ -1,2 +1,2 @@
-# parsedown-toc
+# Parsedown-toc
 Table of content for Parsedown
