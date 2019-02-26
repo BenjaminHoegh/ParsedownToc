@@ -22,4 +22,4 @@ class ParsedownToc extends ParsedownExtra {
 
 ### About setext headers
 
-To avoid to many cyclus there slow down the rendering headers using `---` or `===` require at least 3 `-` or `=` to get detected
+To avoid to many cyclus there slow down the rendering headers using `---` or `===` require at least 3 `-` or `=` to get detected (working on a solution to solve this)
