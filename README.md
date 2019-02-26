@@ -6,6 +6,8 @@ Table of content for Parsedown
 To use toc you simple use `[toc]` in your markdown file where you want it to make the list.
 
 
+#### Example:
+
 * Markdown:
   ```
   [toc]
