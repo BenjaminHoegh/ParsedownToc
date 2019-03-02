@@ -1,8 +1,8 @@
 <?php
 
-class ParsedownToc extends Parsedown {
-
-    const VERSION = '1.0';
+class ParsedownToc extends Parsedown
+{
+    const VERSION = '1.1';
 
     public function __construct()
     {
@@ -78,7 +78,7 @@ class ParsedownToc extends Parsedown {
             $Block['element']['attributes']['id'] = $this->createAnchorID($Block['element']['handler']['argument'], ['transliterate' => true]);
         }
 
-        if($Block['type'] == 'Paragraph') {
+        if ($Block['type'] == 'Paragraph') {
             $link = "#".$Block['element']['attributes']['id'];
             $Block['element']['handler']['argument'] = $Block['element']['handler']['argument']."<a class='heading-link' href='{$link}'> <i class='fas fa-link'></i></a>";
         }
@@ -92,35 +92,94 @@ class ParsedownToc extends Parsedown {
     //
     // Toc
     // -------------------------------------------------------------------------
+    private $tocSettings;
 
+    public function toc($input)
+    {
+        $Line['text'] = '[toc]';
+        $Line['toc']['type'] = 'string';
+
+        if (is_array($input)) {
+            // selectors
+            if (isset($input['selector'])) {
+                if(!is_array($input['selector'])) {
+                    throw new Exception("Selector must be a array");
+                }
+                $this->tocSettings['selectors'] = $input['selector'];
+            }
+
+            // Inline
+            if (isset($input['inline'])) {
+                if(!is_bool($input['inline'])) {
+                    throw new Exception("Inline must be a boolean");
+                }
+                $this->tocSettings['inline'] = $input['inline'];
+            }
+
+            // Scope
+            if (isset($input['scope'])) {
+                if(!is_string($input['scope'])) {
+                    throw new Exception("Scope must be a string");
+                }
+                $this->fullDocument = $input['scope'];
+            }
+
+        } elseif (is_string($input)) {
+            $this->fullDocument = $input;
+        } else {
+            throw new Exception("Unexpected parameter type");
+        }
+
+        return $this->blockToc($Line, null, false);
+    }
+
+    // ~
+
+    protected $contentsListString;
     protected $contentsListArray = array();
     protected $firstHeadLevel = 0;
 
-    protected function blockToc($Line, array $Block = null)
+    // ~
+
+    protected function blockToc(array $Line, array $Block = null, $isInline = true)
     {
         if ($Line['text'] == '[toc]') {
-            $headerLines = array();
-            $prevLine = '';
+            if(isset($this->tocSettings['inline']) && $this->tocSettings['inline'] == false && $isInline == true) {
+                return;
+            }
+
+            $selectorList = $this->tocSettings['selectors'] ? $this->tocSettings['selectors'] : ['h1','h2','h3','h4','h5','h6'];
+
+            // Check if $Line[toc][type] already is defined
+            if (!isset($Line['toc']['type'])) {
+                $Line['toc']['type'] = 'array';
+            }
+
+            foreach ($selectorList as $selector) {
+                $selectors[] = (integer) trim($selector, 'h');
+            }
 
             $cleanDoc = preg_replace('/<!--(.|\s)*?-->/', '', $this->fullDocument);
+            $headerLines = array();
+            $prevLine = '';
 
             // split text into lines
             $lines = explode("\n", $cleanDoc);
 
             foreach ($lines as $headerLine) {
-                if (strspn($headerLine, '#') > 0 || strspn($headerLine, '=') > 3 || strspn($headerLine, '-') > 3) {
+                if (strspn($headerLine, '#') > 0 || strspn($headerLine, '=') >= 3 || strspn($headerLine, '-') >= 3) {
                     $level = strspn($headerLine, '#');
 
                     // Setext headers
-                    if (strspn($headerLine, '=') > 3 && $prevLine !== '') {
+                    if (strspn($headerLine, '=') >= 3 && $prevLine !== '') {
                         $level = 1;
                         $headerLine = $prevLine;
-                    } elseif (strspn($headerLine, '-') > 3 && $prevLine !== '') {
+                    } elseif (strspn($headerLine, '-') >= 3 && $prevLine !== '') {
                         $level = 2;
                         $headerLine = $prevLine;
                     }
 
-                    if ($level > 0 && $level <= 6) {
+                    if (in_array($level, $selectors) && $level > 0 && $level <= 6) {
                         $text = preg_replace('/[ #]*{('.$this->regexAttribute.'+)}[ ]*$/', '', $headerLine);
                         $text = trim(trim($text, '#'));
 
@@ -133,6 +192,7 @@ class ParsedownToc extends Parsedown {
                             }
                         }
 
+                        // ~
 
                         if ($this->firstHeadLevel === 0) {
                             $this->firstHeadLevel = $level;
@@ -148,12 +208,23 @@ class ParsedownToc extends Parsedown {
 
                         $indent = str_repeat('  ', $level);
 
-                        $this->contentsListArray[] = "$indent- [${text}](#${id})\n";
+                        // ~
+
+                        if ($Line['toc']['type'] == 'string') {
+                            $this->contentsListString .= "$indent- [${text}](#${id})\n";
+                        } else {
+                            $this->contentsListArray[] = "$indent- [${text}](#${id})\n";
+                        }
                     }
                 }
                 $prevLine = $headerLine;
             }
 
+            if ($Line['toc']['type'] == 'string') {
+                return $this->text($this->contentsListString);
+            }
+
+            // ~
 
             $Block = array(
 
@@ -181,7 +252,7 @@ class ParsedownToc extends Parsedown {
     }
 
 
-    private function createAnchorID($str, $options = array())
+    private function createAnchorID(string $str, $options = array()) : string
     {
         // Make sure string is in UTF-8 and strip invalid UTF-8 characters
         $str = mb_convert_encoding((string)$str, 'UTF-8', mb_list_encodings());
@@ -210,7 +281,7 @@ class ParsedownToc extends Parsedown {
             'ø' => 'oe', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ű' => 'u', 'ý' => 'y', 'þ' => 'th',
             'ÿ' => 'y', 'œ' => 'oe',
             // Latin symbols
-            '©' => '(c)',
+            '©' => '(c)','®' => '(r)','™' => '(tm)',
             // Greek
             'Α' => 'A', 'Β' => 'B', 'Γ' => 'G', 'Δ' => 'D', 'Ε' => 'E', 'Ζ' => 'Z', 'Η' => 'H', 'Θ' => '8',
             'Ι' => 'I', 'Κ' => 'K', 'Λ' => 'L', 'Μ' => 'M', 'Ν' => 'N', 'Ξ' => '3', 'Ο' => 'O', 'Π' => 'P',
@@ -276,6 +347,7 @@ class ParsedownToc extends Parsedown {
         // Remove delimiter from ends
         $str = trim($str, $options['delimiter']);
 
+
         return $options['lowercase'] ? mb_strtolower($str, 'UTF-8') : $str;
     }
 
@@ -285,20 +357,15 @@ class ParsedownToc extends Parsedown {
 
         $attributes = preg_split('/[ ]+/', $attributeString, - 1, PREG_SPLIT_NO_EMPTY);
 
-        foreach ($attributes as $attribute)
-        {
-            if ($attribute[0] === '#')
-            {
+        foreach ($attributes as $attribute) {
+            if ($attribute[0] === '#') {
                 $Data['id'] = substr($attribute, 1);
-            }
-            else // "."
-            {
+            } else { // "."
                 $classes []= substr($attribute, 1);
             }
         }
 
-        if (isset($classes))
-        {
+        if (isset($classes)) {
             $Data['class'] = implode(' ', $classes);
         }
 
@@ -307,5 +374,3 @@ class ParsedownToc extends Parsedown {
 
     protected $regexAttribute = '(?:[#.][-\w]+[ ]*)';
 }
-
-?>
