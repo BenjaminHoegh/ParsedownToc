@@ -134,3 +134,8 @@ class ParsedownToc extends ParsedownExtra {
 ### About setext headers
 
 To avoid too many cycles there slow down the rendering headers using `---` or `===` require at least 3 `-` or `=` to get detected (working on a solution to solve this)
+
+
+---
+
+Any help on documentation are welcome as my english isn't the best
