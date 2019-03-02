@@ -85,7 +85,7 @@ echo $Parsedown->text($body);
 ## Example:
 
 * Markdown:
-  ```
+  ```markdown
   [toc]
 
   ---
@@ -99,7 +99,7 @@ echo $Parsedown->text($body);
 
 * Result:
 
-  ```
+  ```html
   <ul>
     <li><a href="#Head1">Head1</a>
       <ul>
