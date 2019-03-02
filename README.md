@@ -42,42 +42,42 @@ You have some options to play with `selector`, `scope` and `inline`. These optio
 
 **Examples:**
 
-Using to change settings for inline toc
+- Using to change settings for inline toc
 
-```php
-$body = file_get_contents('test1.md');
-$Parsedown->toc([
-    'selector' => ['h1','h2','h3','h4','h5','h6'],
-    'inline' => true,
-]);
-echo $Parsedown->text($body);
-```
+  ```php
+  $body = file_get_contents('test1.md');
+  $Parsedown->toc([
+      'selector' => ['h1','h2','h3','h4','h5','h6'],
+      'inline' => true,
+  ]);
+  echo $Parsedown->text($body);
+  ```
 
-Used outsite of the document with settings
+- Used outsite of the document with settings
 
 
-```php
-$body = file_get_contents('test1.md');
-echo $Parsedown->toc([
-    'selector' => ['h1','h2','h3','h4','h5','h6'],
-    'inline' => false,
-    'scope' => $body
-]);
-echo $Parsedown->text($body);
-```
+  ```php
+  $body = file_get_contents('test1.md');
+  echo $Parsedown->toc([
+      'selector' => ['h1','h2','h3','h4','h5','h6'],
+      'inline' => false,
+      'scope' => $body
+  ]);
+  echo $Parsedown->text($body);
+  ```
 
-Used to change settings with toc outsite of document
+- Used to change settings with toc outsite of document
 
-```php
-$body = file_get_contents('test1.md');
-$Parsedown->toc([
-    'selector' => ['h1','h2','h3','h4','h5','h6'],
-    'inline' => false,
-]);
+  ```php
+  $body = file_get_contents('test1.md');
+  $Parsedown->toc([
+      'selector' => ['h1','h2','h3','h4','h5','h6'],
+      'inline' => false,
+  ]);
 
-echo $Parsedown->toc(body);
-echo $Parsedown->text($body);
-```
+  echo $Parsedown->toc(body);
+  echo $Parsedown->text($body);
+  ```
 
 
 ---
