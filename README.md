@@ -2,7 +2,7 @@
 ![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedown-toc.svg?style=flat-square)
 
 # Parsedown-toc
-Table of content for Parsedown
+Table of content for [Parsedown](https://github.com/erusev/parsedown)
 
 ## Usage
 
