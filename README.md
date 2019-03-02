@@ -75,7 +75,7 @@ You have some options to play with `selector`, `scope` and `inline`. These optio
       'inline' => false,
   ]);
 
-  echo $Parsedown->toc(body);
+  echo $Parsedown->toc($body);
   echo $Parsedown->text($body);
   ```
 
