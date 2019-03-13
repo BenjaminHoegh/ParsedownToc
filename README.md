@@ -15,7 +15,7 @@ Table of content for [Parsedown](https://github.com/erusev/parsedown)
   If you like to get a toc outside the markdown you can use `toc()` 
   this requires that you define a source
   
-  **Exaple:**
+  **Example:**
   ```php
   $markdown = file_get_contents('test1.md');
   
@@ -23,7 +23,8 @@ Table of content for [Parsedown](https://github.com/erusev/parsedown)
 
   echo $Parsedown->text($markdown);
   ```
-  
+
+
 ## Options
 
 You have some options to play with `selector`, `scope` and `inline`. These options can be set and used with `toc()` 
@@ -79,43 +80,7 @@ You have some options to play with `selector`, `scope` and `inline`. These optio
   echo $Parsedown->text($body);
   ```
 
-
 ---
-
-## Example:
-
-* Markdown:
-  ```markdown
-  [toc]
-
-  ---
-
-  # Head1
-  Sample text of head 1.
-
-  ## Head1-1
-  Sample text of head 1-1.
-  ```
-
-* Result:
-
-  ```html
-  <ul>
-    <li><a href="#Head1">Head1</a>
-      <ul>
-        <li><a href="#Head1-1">Head1-1</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <hr>
-
-  <h1 id="Head1">Head1</h1>
-  <p>Sample text of head 1.</p>
-
-  <h2 id="Head1-1">Head1-1</h2>
-  <p>Sample text of head 1-1.</p>
-  ```
 
 ## ParsedownExtra
 
