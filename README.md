@@ -6,27 +6,6 @@ Table of content for [Parsedown](https://github.com/erusev/parsedown)
 
 ## Usage
 
-- Option 1:
-
-  You can simply use `[toc]` inside your markdown where you want it to make the list.
-  
-- Option 2:
-
-  If you like to get a toc outside the markdown you can use `toc()` 
-  this requires that you define a source
-  
-  **Example:**
-  ```php
-  $markdown = file_get_contents('test1.md');
-  
-  echo $Parsedown->toc($markdown);
-
-  echo $Parsedown->text($markdown);
-  ```
-
-
-## Options
-
 You have some options to play with `selector`, `scope` and `inline`. These options can be set and used with `toc()` 
 
 - `Inline`
