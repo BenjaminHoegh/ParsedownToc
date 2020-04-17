@@ -6,7 +6,7 @@ Table of content for [Parsedown](https://github.com/erusev/parsedown)
 
 ## Usage
 
-You have some options to play with `selector`, `scope` and `inline`. These options can be set and used with `toc()` 
+You have some options to play with `selector`, `scope` and `inline`. These options can be set and used with `toc()`
 
 - `Inline`
 
@@ -58,20 +58,6 @@ You have some options to play with `selector`, `scope` and `inline`. These optio
   echo $Parsedown->toc($body);
   echo $Parsedown->text($body);
   ```
-
----
-
-## ParsedownExtra
-
-If you wanna use it with ParsedownExtra you need to change the following line:
-```
-class ParsedownToc extends Parsedown {
-```
-to
-```
-class ParsedownToc extends ParsedownExtra {
-```
-
 
 ---
 

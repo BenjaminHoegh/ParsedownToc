@@ -1,15 +1,36 @@
 <?php
 
-class ParsedownToc extends Parsedown
+if (class_exists('ParsedownExtra')) {
+    class DynamicParent extends ParsedownExtra
+    {
+        public function __construct()
+        {
+            if (version_compare(parent::version, '0.8.0-beta-1') < 0) {
+                throw new Exception('ParsedownToc requires a later version of ParsedownExtra');
+            }
+            parent::__construct();
+        }
+    }
+} else {
+    class DynamicParent extends Parsedown
+    {
+        public function __construct()
+        {
+            if (version_compare(parent::version, '1.8.0-beta-6') < 0) {
+                throw new Exception('ParsedownToc requires a later version of Parsedown');
+            }
+        }
+    }
+}
+
+
+class ParsedownToc extends DynamicParent
 {
-    const VERSION = '1.1';
+    const VERSION = '1.2';
 
     public function __construct()
     {
-        if (version_compare(parent::version, '0.7.1') < 0) {
-            throw new Exception('Parsedown-toc requires a later version of Parsedown');
-        }
-
+        parent::__construct();
         $this->BlockTypes['['][] = 'Toc';
     }
 

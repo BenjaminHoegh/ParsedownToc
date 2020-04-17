@@ -1,0 +1,4 @@
+vendor/
+test/
+composer.lock
+notes.md
