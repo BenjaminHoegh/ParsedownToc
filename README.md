@@ -22,7 +22,7 @@ Extension for Parsedown and ParsedownExtra
 Install the  [composer package](https://packagist.org/packages/hoegh/parsedowntoc "The ParsedownToc package on packagist.org"):
 
 ```
-composer require hoegh/Parsedowntoc
+composer require hoegh/parsedowntoc
 ```
 
 Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest "The latest release of parsedownToc") and include `Parsedown.php`
