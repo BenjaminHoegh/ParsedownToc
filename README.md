@@ -7,19 +7,37 @@
 
 Extension for Parsedown and ParsedownExtra
 
+## Features
 
+- Super fast
+
+- Configurable
+
+- Tested in 7.1 to 7.3
+
+- Full support for custom header ids
+
+## Installation
+
+Install the  [composer package](https://packagist.org/packages/BenjaminHoegh/ParsedownToc "The ParsedownToc package on packagist.org"):
+
+```
+composer require BenjaminHoegh/ParsedownToc
+```
+
+Or download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest "The latest release of ParsedownToc") and include `Parsedown.php`
+
+## Examples
 
 ```php
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
-
 // Sample Markdown with '[toc]' tag included
-$fileContent = file_get_contents('SAMPLE.md');
+$content = file_get_contents('sample.md');
 
-$Parsedown = new \ParsedownToc();
+$Parsedown = new ParsedownToc();
 
 // Parses '[toc]' tag to ToC if exists
-$html = $Parsedown->text($fileContent);
+$html = $Parsedown->text($content);
 
 echo $html;
 ```
@@ -29,50 +47,60 @@ With the `contentsList()` method, you can get just the "ToC".
 ```php
 <?php
 // Parse body and ToC separately
-
-require_once __DIR__ . '/vendor/autoload.php';
-
-$fileContent = file_get_contents('SAMPLE.md');
+$content = file_get_contents('sample.md');
 $Parsedown = new \ParsedownToC();
 
-$body = $Parsedown->body($fileContent);
+$body = $Parsedown->body($content);
 $toc  = $Parsedown->contentsList();
 
 echo $toc;  // Table of Contents in <ul> list
 echo $body; // Main body
 ```
 
+## Configuration
+
 - **Main Class:** `ParsedownToc(array $options = null)`
   - **Optional arguments:**
     - `selectors`:
+      
       - **Type:** `array`
       - **Default:** `['h1', 'h2', 'h3', 'h4', 'h5', 'h6']`
+    
     - `delimiter`:
+      
       - **Type:** `string`
       - **Default:** `-`
+    
     - `limit`:
+      
       - **Type:** `int`
       - **Default:** `null`
+    
     - `lowercase`:
+      
       - **Type:** `boolean`
       - **Default:** `true`
+    
     - `replacements`:
+      
       - **Type:** `array`
       - **Default:** `none`
+    
     - `transliterate`:
+      
       - **Type:** `boolean`
       - **Default:** `false`
+    
     - `urlencode`:
-      - Use PHP urlencode this disable all other options
+      
+      - Use PHP build-in `urlencode` this will disable all other options
       - **Type:** `boolean`
       - **Default:** `false`
   - **Methods:**
     - `text(string $text)`:
       - Returns the parsed content and `[toc]` tag(s) parsed as well.
-      - Required argument `$text`: Markdown string to be parsed.
     - `body(string $text)`:
       - Returns the parsed content WITHOUT parsing `[toc]` tag.
-      - Required argument `$text`: Markdown string to be parsed.
     - `contentsList([string $type_return='html'])`:
       - Returns the ToC, the table of contents, in HTML or JSON.
       - **Optional argument:**
@@ -83,18 +111,3 @@ echo $body; // Main body
     - `setTagToc(string $tag='[tag]')`:
       - Sets user defined ToC markdown tag. Use this method before `text()` or `body()` method if you want to use the ToC tag rather than the "`[toc]`".
       - Empty value sets the default ToC tag.
-
-## Install
-
-### Via Composer
-
-If you are familiar to [composer](https://en.wikipedia.org/wiki/Composer_(software)), the package manager for PHP, then install it as below:
-
-```bash
-# Latest stable release
-composer require BenjaminHoegh/parsedownToc
-```
-
-### Manual Install (Download the script)
-
-Download the '[ParsedownToc.php](BenjaminHoegh/parsedownToc/blob/master/ParsedownToc.php)' file and place it anywhere you like to include.
