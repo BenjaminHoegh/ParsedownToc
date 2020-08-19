@@ -19,13 +19,13 @@ Extension for Parsedown and ParsedownExtra
 
 ## Installation
 
-Install the  [composer package](https://packagist.org/packages/BenjaminHoegh/ParsedownToc "The ParsedownToc package on packagist.org"):
+Install the  [composer package](https://packagist.org/packages/BenjaminHoegh/parsedownToc "The ParsedownToc package on packagist.org"):
 
 ```
 composer require BenjaminHoegh/ParsedownToc
 ```
 
-Or download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest "The latest release of ParsedownToc") and include `Parsedown.php`
+Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest "The latest release of parsedownToc") and include `Parsedown.php`
 
 ## Examples
 
