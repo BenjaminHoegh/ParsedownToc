@@ -1,71 +1,113 @@
-![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/parsedown-toc.svg?style=flat-square)
-![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedown-toc.svg?style=flat-square)
+![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/parsedownToc.svg?style=flat-square)
+![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedownToc.svg?style=flat-square)
 
-# Parsedown-toc
-Table of content for [Parsedown](https://github.com/erusev/parsedown)
-
-## Usage
-
-You have some options to play with `selector`, `scope` and `inline`. These options can be set and used with `toc()`
-
-- `Inline`
-
-  Use to toggle the use of `[toc]` inside your markdown.
-
-- `Selector`
-
-  Chose which headers to catch.
-
-- `Scope`
-
-  Define the source to make a toc off, you can example use an external source or the markdown source itself
-
-**Examples:**
-
-- Using to change settings for inline toc
-
-  ```php
-  $body = file_get_contents('test1.md');
-  $Parsedown->toc([
-      'selector' => ['h1','h2','h3','h4','h5','h6'],
-      'inline' => true,
-  ]);
-  echo $Parsedown->text($body);
-  ```
-
-- Used outsite of the document with settings
-
-
-  ```php
-  $body = file_get_contents('test1.md');
-  echo $Parsedown->toc([
-      'selector' => ['h1','h2','h3','h4','h5','h6'],
-      'inline' => false,
-      'scope' => $body
-  ]);
-  echo $Parsedown->text($body);
-  ```
-
-- Used to change settings with toc outsite of document
-
-  ```php
-  $body = file_get_contents('test1.md');
-  $Parsedown->toc([
-      'selector' => ['h1','h2','h3','h4','h5','h6'],
-      'inline' => false,
-  ]);
-
-  echo $Parsedown->toc($body);
-  echo $Parsedown->text($body);
-  ```
+# ParsedownToc
 
 ---
 
-### About setext headers
+Extension for Parsedown and ParsedownExtra
 
-To avoid too many cycles there slow down the rendering headers using `---` or `===` require at least 3 `-` or `=` to get detected (working on a solution to solve this)
+## Features
 
+- Super fast
 
----
+- Configurable
 
-Any help on documentation are welcome as my english isn't the best
+- Tested in 7.1 to 7.3
+
+- Full support for custom header ids
+
+## Installation
+
+Install the  [composer package](https://packagist.org/packages/BenjaminHoegh/parsedownToc "The ParsedownToc package on packagist.org"):
+
+```
+composer require BenjaminHoegh/ParsedownToc
+```
+
+Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest "The latest release of parsedownToc") and include `Parsedown.php`
+
+## Examples
+
+```php
+<?php
+// Sample Markdown with '[toc]' tag included
+$content = file_get_contents('sample.md');
+
+$Parsedown = new ParsedownToc();
+
+// Parses '[toc]' tag to ToC if exists
+$html = $Parsedown->text($content);
+
+echo $html;
+```
+
+With the `contentsList()` method, you can get just the "ToC".
+
+```php
+<?php
+// Parse body and ToC separately
+$content = file_get_contents('sample.md');
+$Parsedown = new \ParsedownToC();
+
+$body = $Parsedown->body($content);
+$toc  = $Parsedown->contentsList();
+
+echo $toc;  // Table of Contents in <ul> list
+echo $body; // Main body
+```
+
+## Configuration
+
+- **Main Class:** `ParsedownToc(array $options = null)`
+  - **Optional arguments:**
+    - `selectors`:
+      
+      - **Type:** `array`
+      - **Default:** `['h1', 'h2', 'h3', 'h4', 'h5', 'h6']`
+    
+    - `delimiter`:
+      
+      - **Type:** `string`
+      - **Default:** `-`
+    
+    - `limit`:
+      
+      - **Type:** `int`
+      - **Default:** `null`
+    
+    - `lowercase`:
+      
+      - **Type:** `boolean`
+      - **Default:** `true`
+    
+    - `replacements`:
+      
+      - **Type:** `array`
+      - **Default:** `none`
+    
+    - `transliterate`:
+      
+      - **Type:** `boolean`
+      - **Default:** `false`
+    
+    - `urlencode`:
+      
+      - Use PHP build-in `urlencode` this will disable all other options
+      - **Type:** `boolean`
+      - **Default:** `false`
+  - **Methods:**
+    - `text(string $text)`:
+      - Returns the parsed content and `[toc]` tag(s) parsed as well.
+    - `body(string $text)`:
+      - Returns the parsed content WITHOUT parsing `[toc]` tag.
+    - `contentsList([string $type_return='html'])`:
+      - Returns the ToC, the table of contents, in HTML or JSON.
+      - **Optional argument:**
+        - `$type_return`:
+          - `html` or `json` can be specified.
+          - **Default:** `html`
+      - Alias method: `contentsList(string $type_return)`
+    - `setTagToc(string $tag='[tag]')`:
+      - Sets user defined ToC markdown tag. Use this method before `text()` or `body()` method if you want to use the ToC tag rather than the "`[toc]`".
+      - Empty value sets the default ToC tag.
