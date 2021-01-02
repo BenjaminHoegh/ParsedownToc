@@ -123,7 +123,6 @@ class ParsedownToC extends DynamicParent
     * @param  array $Line  Array that Parsedown detected as a block type element.
     * @return void|array   Array of Heading Block.
      */
-
     protected function blockSetextHeader($Line, array $Block = null)
     {
         // Use parent blockHeader method to process the $Line to $Block
@@ -159,7 +158,7 @@ class ParsedownToC extends DynamicParent
             return $Block;
         }
     }
-    
+
     /**
      * Parses the given markdown string to an HTML string but it leaves the ToC
      * tag as is. It's an alias of the parent method "\DynamicParent::text()".
@@ -196,7 +195,7 @@ class ParsedownToC extends DynamicParent
         if ('json' === strtolower($type_return)) {
             return json_encode($this->contentsListArray);
         }
-        
+
         // Forces to return ToC as "html"
         error_log(
             'Unknown return type given while parsing ToC.'
@@ -217,11 +216,11 @@ class ParsedownToC extends DynamicParent
     {
         // Make sure string is in UTF-8 and strip invalid UTF-8 characters
         $str = mb_convert_encoding((string)$str, 'UTF-8', mb_list_encodings());
-        
+
         if($this->options['urlencode']) {
             // Check AnchorID is unique
             $num = $this->uniqueAnchorID($str, $this->contentsListArray);
-            
+
             if(!empty($num)) {
                 $str = $str.'-'.$num;
             }
@@ -318,14 +317,14 @@ class ParsedownToC extends DynamicParent
         $str = trim($str, $this->options['delimiter']);
 
         $str = $this->options['lowercase'] ? mb_strtolower($str, 'UTF-8') : $str;
-        
+
         // Check AnchorID is unique
         $num = $this->uniqueAnchorID($str, $this->contentsListArray);
-        
+
         if(!empty($num)) {
             $str = $str.'-'.$num;
         }
-        
+
         return $str;
     }
 
@@ -545,29 +544,25 @@ class ParsedownToC extends DynamicParent
 
         return str_replace($needle, $replace, $html);
     }
-    
-    
-    
-    
+
     /**
-    * 
-    * Make sure that AnchorID is always unique by calculate duplicates
-    *
-    * @param  string $needle, array $haystack, boolean $strict
-    * @return boolean
-    */
+     * Make sure that AnchorID is always unique by calculate duplicates
+     *
+     * @param  string $needle, array $haystack, boolean $strict
+     * @return boolean
+     */
     protected $contentsListDuplicates = array();
-    
+
     protected function uniqueAnchorID($needle, $haystack, $strict = false) {
         foreach ($haystack as $key => $item) {
             if (($strict ? $key === $needle : $key == $needle) || (is_array($key) && $this->uniqueAnchorID($needle, $item, $strict))) {
                 $this->contentsListDuplicates[$needle][] = 1;
                 $num = count($this->contentsListDuplicates[$needle]);
                 if ($num > 1) {
-                    return count($this->contentsListDuplicates[$needle]);    
+                    return count($this->contentsListDuplicates[$needle]);
                 }
             }
         }
-        return null;        
+        return null;
     }
 }
