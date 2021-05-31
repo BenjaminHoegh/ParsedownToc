@@ -13,7 +13,7 @@ Extension for Parsedown and ParsedownExtra
 
 - Configurable
 
-- Tested in 7.1 to 7.3
+- Tested in PHP 7.1 to 7.4
 
 - Full support for custom header ids
 
