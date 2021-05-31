@@ -34,7 +34,7 @@ Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/r
 // Sample Markdown with '[toc]' tag included
 $content = file_get_contents('sample.md');
 
-$Parsedown = new ParsedownToc();
+$Parsedown = new ParsedownToC();
 
 // Parses '[toc]' tag to ToC if exists
 $html = $Parsedown->text($content);
@@ -59,7 +59,7 @@ echo $body; // Main body
 
 ## Configuration
 
-- **Main Class:** `ParsedownToc(array $options = null)`
+- **Main Class:** `ParsedownToC(array $options = null)`
   - **Optional arguments:**
     - `selectors`:
       

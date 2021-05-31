@@ -37,7 +37,8 @@ class ParsedownToC extends DynamicParent
         'lowercase' => true,
         'replacements' => null,
         'transliterate' => false,
-        'urlencode' => false
+        'urlencode' => false,
+        'blacklist' => [],
     );
 
     /**
@@ -122,7 +123,6 @@ class ParsedownToC extends DynamicParent
     * @param  array $Line  Array that Parsedown detected as a block type element.
     * @return void|array   Array of Heading Block.
      */
-
     protected function blockSetextHeader($Line, array $Block = null)
     {
         // Use parent blockHeader method to process the $Line to $Block
@@ -219,11 +219,8 @@ class ParsedownToC extends DynamicParent
 
         if($this->options['urlencode']) {
             // Check AnchorID is unique
-            $num = $this->uniqueAnchorID($str, $this->contentsListArray);
+            $str = $this->incrementAnchorId($str);
 
-            if(!empty($num)) {
-                $str = $str.'-'.$num;
-            }
             return urlencode($str);
         }
 
@@ -318,12 +315,7 @@ class ParsedownToC extends DynamicParent
 
         $str = $this->options['lowercase'] ? mb_strtolower($str, 'UTF-8') : $str;
 
-        // Check AnchorID is unique
-        $num = $this->uniqueAnchorID($str, $this->contentsListArray);
-
-        if(!empty($num)) {
-            $str = $str.'-'.$num;
-        }
+        $str = $this->incrementAnchorId($str);
 
         return $str;
     }
@@ -546,27 +538,57 @@ class ParsedownToC extends DynamicParent
     }
 
 
-
+    protected $isBlacklistInitialized = false;
+    protected $anchorDuplicates = [];
 
     /**
-    *
-    * Make sure that AnchorID is always unique by calculate duplicates
-    *
-    * @param  string $needle, array $haystack, boolean $strict
-    * @return boolean
-    */
-    protected $contentsListDuplicates = array();
+     * Add blacklisted ids to anchor list
+     */
+    protected function initBlacklist() {
 
-    protected function uniqueAnchorID($needle, $haystack, $strict = false) {
-        foreach ($haystack as $key => $item) {
-            if (($strict ? $key === $needle : $key == $needle) || (is_array($key) && $this->uniqueAnchorID($needle, $item, $strict))) {
-                $this->contentsListDuplicates[$needle][] = 1;
-                $num = count($this->contentsListDuplicates[$needle]);
-                if ($num > 1) {
-                    return count($this->contentsListDuplicates[$needle]);
-                }
+        if ($this->isBlacklistInitialized) return;
+
+        if (!empty($this->options['blacklist']) && is_array($this->options['blacklist'])) {
+
+            foreach ($this->options['blacklist'] as $v) {
+                if (is_string($v)) $this->anchorDuplicates[$v] = 0;
             }
         }
-        return null;
+
+        $this->isBlacklistInitialized = true;
     }
+
+    /**
+     * Collect and count anchors in use to prevent duplicated ids. Return string
+     * with incremental, numeric suffix. Also init optional blacklist of ids.
+     *
+     * @param  string $str
+     * @return string
+     */
+    protected function incrementAnchorId($str) {
+
+        // add blacklist to list of used anchors
+        if (!$this->isBlacklistInitialized) $this->initBlacklist();
+
+        $this->anchorDuplicates[$str] = !isset($this->anchorDuplicates[$str]) ? 0 : ++$this->anchorDuplicates[$str];
+
+        $newStr = $str;
+
+        if ($count = $this->anchorDuplicates[$str]) {
+
+            $newStr .= "-{$count}";
+
+            // increment until conversion doesn't produce new duplicates anymore
+            if (isset($this->anchorDuplicates[$newStr])) {
+                $newStr = $this->incrementAnchorId($str);
+            }
+            else {
+                $this->anchorDuplicates[$newStr] = 0;
+            }
+
+        }
+
+        return $newStr;
+    }
+
 }
