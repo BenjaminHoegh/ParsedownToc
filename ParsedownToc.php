@@ -514,7 +514,7 @@ class ParsedownToC extends DynamicParent
      * It overrides the parent method: \Parsedown::text().
      *
      * @param  string $text
-     * @return void
+     * @return string
      */
     public function text($text)
     {
