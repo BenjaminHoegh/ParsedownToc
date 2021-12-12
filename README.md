@@ -1,33 +1,54 @@
-![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/parsedownToc.svg?style=flat-square)
-![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedownToc.svg?style=flat-square)
+<p align="center">
+  <a href="https://github.com/BenjaminHoegh/ParsedownToc">
+    <img alt="ParsedownToc" src="https://github.com/BenjaminHoegh/ParsedownToc/blob/master/.github/ParsedownToc.png" height="330" />
+  </a>
 
-# ParsedownToc
+  <h3 align="center">Parsedown ToC</h3>
 
----
+  <p align="center">
+    <a href="https://benjaminhoegh.github.io/ParsedownToc/configurations"><strong>Explore Documentation »</strong></a>
+    <br>
+    <br>
+    <a href="https://github.com/BenjaminHoegh/ParsedownToc/issues/new?template=bug_report.md">Report bug</a>
+    ·
+    <a href="https://github.com/BenjaminHoegh/ParsedownToc/issues/new?template=feature_request.md&labels=feature">Request feature</a>
+    ·
+    <a href="https://github.com/BenjaminHoegh/ParsedownToc/discussions">Discussions</a>
+  </p>
 
-Extension for Parsedown and ParsedownExtra
+</p>
+
+<br>
+
+[![Github All Releases](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)](https://github.com/BenjaminHoegh/ParsedownToc/releases) [![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc?style=flat-square)](https://github.com/BenjaminHoegh/ParsedownToc/blob/main/LICENSE.md)
+
+Table of contents
+
+- [Getting started](#getting-started)
+- [Bugs and feature requests](#bugs-and-feature-requests)
+- [Contributing](#contributing)
+- [Community](#community)
+- [Copyright and license](#copyright-and-license)
 
 ## Features
-
 - Super fast
-
 - Configurable
-
-- Tested in PHP 7.1 to 8.0
-
+- Tested in PHP 7.1 to 8.1
 - Full support for custom header ids
 
 ## Installation
 
-Install the  [composer package](https://packagist.org/packages/hoegh/parsedowntoc "The ParsedownToc package on packagist.org"):
+Install the (composer package)[]:
 
-```
-composer require benjaminhoegh/parsedowntoc
+```shell
+composer require benjaminhoegh/parsedown-toc
 ```
 
-Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest "The latest release of parsedownToc") and include `Parsedown.php`
+Or download the (latest release)[] and include ParsedownToc.php
 
 ## Examples
+
+<!-- TODO: Update examples -->
 
 ```php
 <?php
@@ -111,3 +132,23 @@ echo $body; // Main body
     - `setTagToc(string $tag='[tag]')`:
       - Sets user defined ToC markdown tag. Use this method before `text()` or `body()` method if you want to use the ToC tag rather than the "`[toc]`".
       - Empty value sets the default ToC tag.
+
+## Bugs and feature requests
+
+Have a bug or a feature request? Please first read the [issue guidelines](https://github.com/BenjaminHoegh/ParsedownToc/blob/main/.github/CONTRIBUTING.md#using-the-issue-tracker) and search for existing and closed issues. If your problem or idea is not addressed yet, [please open a new issue](https://github.com/BenjaminHoegh/ParsedownToc/issues/new/choose).
+
+## Contributing
+
+Please read through our [contributing guidelines](https://github.com/BenjaminHoegh/ParsedownToc/blob/main/.github/CONTRIBUTING.md). Included are directions for opening issues, coding standards, and notes on development.
+
+All PHP should conform to the [Code Guide](https://www.php-fig.org/psr/psr-12/).
+
+## Community
+
+Get updates on ParsedownToc's development and chat with the project maintainers and community members.
+
+- Join [GitHub discussions](https://github.com/BenjaminHoegh/ParsedownToc/discussions).
+
+## Copyright and license
+
+Code and documentation copyright 2021 the [ParsedownToc Authors](https://github.com/BenjaminHoegh/ParsedownToc/graphs/contributors). Code released under the [MIT License](https://github.com/BenjaminHoegh/ParsedownToc/blob/main/LICENSE.md). Docs released under [Creative Commons](https://github.com/BenjaminHoegh/ParsedownToc/blob/main/docs/LICENSE.md).
