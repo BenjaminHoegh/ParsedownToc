@@ -38,13 +38,13 @@ Table of contents
 
 ## Installation
 
-Install the (composer package)[]:
+Install the [composer package](https://packagist.org/packages/benjaminhoegh/parsedown-toc):
 
 ```shell
 composer require benjaminhoegh/parsedown-toc
 ```
 
-Or download the (latest release)[] and include ParsedownToc.php
+Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest) and include ParsedownToc.php
 
 ## Examples
 
