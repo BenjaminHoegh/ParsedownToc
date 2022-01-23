@@ -2,20 +2,24 @@
 
 namespace BenjaminHoegh\ParsedownToc\Features;
 
+use Erusev\Parsedown\Components\Blocks\Header as CoreHeader;
+use Erusev\Parsedown\Components\Blocks\SetextHeader as CoreSetextHeader;
 use Erusev\Parsedown\Configurables\BlockTypes;
-use Erusev\Parsedown\Configurables\InlineTypes;
 use Erusev\Parsedown\Configurables\RenderStack;
 use Erusev\Parsedown\Html\Renderable;
 use Erusev\Parsedown\Html\Renderables\Container;
 use Erusev\Parsedown\Html\Renderables\Element;
 use Erusev\Parsedown\Html\Renderables\RawHtml;
 use Erusev\Parsedown\Html\Renderables\Text;
+use Erusev\Parsedown\Html\TransformableRenderable;
 use Erusev\Parsedown\Parsedown;
 use Erusev\Parsedown\State;
 use Erusev\Parsedown\StateBearer;
-use Erusev\ParsedownExtra\Components\Blocks\Footnote;
-use Erusev\ParsedownExtra\Components\Inlines\Footnote as InlineFootnote;
-use Erusev\ParsedownExtra\Configurables\FootnoteBook;
+
+use BenjaminHoegh\ParsedownToc\Components\Blocks\Toc;
+use BenjaminHoegh\ParsedownToc\Components\Blocks\Header;
+use BenjaminHoegh\ParsedownToc\Components\Blocks\SetextHeader;
+use BenjaminHoegh\ParsedownToc\Configurables\TocBook;
 
 final class Tocs implements StateBearer
 {
@@ -25,23 +29,19 @@ final class Tocs implements StateBearer
     public function __construct(StateBearer $StateBearer = null)
     {
         $State = ($StateBearer ?? new State)->state();
-
+        
         $BlockTypes = $State->get(BlockTypes::class)
-            ->addingMarkedHighPrecedence('[', [Toc::class])
-        ;
-
-        $InlineTypes = $State->get(InlineTypes::class)
-            ->addingHighPrecedence('[', [InlineToc::class])
-        ;
-
-        $RenderStack = $State->get(RenderStack::class)
-            ->push(self::renderFootnotes())
+            ->replacing(CoreHeader::class, Header::class)
+            ->replacing(CoreSetextHeader::class, SetextHeader::class)
+            ->addingMarkedLowPrecedence('[', [Toc::class])
         ;
 
         $this->State = $State
             ->setting($BlockTypes)
-            ->setting($InlineTypes)
-            ->setting($RenderStack)
+        ;
+        
+        $RenderStack = $State->get(RenderStack::class)
+            ->push(self::renderToc())
         ;
     }
 
@@ -55,69 +55,12 @@ final class Tocs implements StateBearer
     {
         return new self($StateBearer);
     }
-
+    
     /** @return \Closure(Renderable[],State):Renderable[] */
-    public static function renderFootnotes()
+    public static function renderToc()
     {
-        /**
-        * @param Renderable[] $Rs
-        * @param State $S
-        * @return Renderable[] $Rs
-        */
         return function (array $Rs, State $S): array {
-            $FB = $S->get(FootnoteBook::class);
-
-            if (empty($FB->all())) {
-                return $Rs;
-            }
-
-            return \array_merge($Rs, [new Element(
-                'div',
-                ['class' => 'footnotes'],
-                [
-                   Element::selfClosing('hr', []),
-                   new Element('ol', [], \array_map(
-                       function (Toc $F) use ($FB, $S): Element {
-                           $BackLink = \array_merge(
-                               [new RawHtml('&#160;')],
-                               \array_map(
-                                   function (int $n) use ($F, $FB): Container {
-                                       return new Container(\array_merge(
-                                           [
-                                           new Element(
-                                               'a',
-                                               [
-                                                   'href' => '#fnref'.\strval($n).':'.$F->title(),
-                                                   'rev' => 'footnote',
-                                                   'class' => 'footnote-backref'
-                                               ],
-                                               [new RawHtml('&#8617;')]
-                                           )],
-                                           ($n < $FB->inlineRecord($F->title()) ? [new Text(' ')] : [])
-                                       ));
-                                   },
-                                   ($count = $FB->inlineRecord($F->title())) > 1 ? \range(1, $count) : [1]
-                               )
-                           );
-
-                           [$StateRenderables, $S] = Parsedown::lines($F->lines(), $S);
-
-                           $InnerRender = $S->applyTo($StateRenderables);
-
-                           $lastItem = $InnerRender[\count($InnerRender) -1];
-
-                           if ($lastItem instanceof Element && $lastItem->name() === 'p' && $contents = $lastItem->contents()) {
-                               $InnerRender[\count($InnerRender) -1] = new Element('p', [], \array_merge($contents, $BackLink));
-                           } else {
-                               $InnerRender[] = new Element('p', [], $BackLink);
-                           }
-
-                           return new Element('li', ['id' => 'fn:'.$F->title()], $InnerRender);
-                       },
-                       $FB->all()
-                   ))
-               ]
-            )]);
+            $TB = $S->get(TocBook::class);
         };
     }
 }

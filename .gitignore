@@ -1,5 +1,6 @@
-vendor/
 .nova/
+.idea/
+vendor/
 tests/
 composer.lock
 

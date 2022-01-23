@@ -3,82 +3,48 @@
 namespace BenjaminHoegh\ParsedownToc\Configurables;
 
 use Erusev\Parsedown\MutableConfigurable;
-use Erusev\ParsedownExtra\Components\Blocks\Footnote;
+use Erusev\ParsedownToc\Components\Blocks\Header;
+use Erusev\ParsedownToc\Components\Blocks\SetextHeader;
 
-final class FootnoteBook implements MutableConfigurable
+final class TocBook implements MutableConfigurable
 {
-    /** @var array<string,Footnote> */
-    private $Footnotes;
-
-    /** @var array<string,array{count:int,num:int}> */
-    private $inlineRecord;
-
-    /** @var int */
-    private $inlineCount;
-
+    /** @var array<string, string> */
+    private $book;
+    
     /**
-     * @param array<string,Footnote> $Footnotes
-     * @param array<string,array{count:int,num:int}> $inlineRecord
+     * @param array<string, string> $book
      */
-    public function __construct(array $Footnotes = [], array $inlineRecord = [])
+    public function __construct(array $book = [])
     {
-        $this->Footnotes = $Footnotes;
-        $this->inlineRecord = $inlineRecord;
-
-        $this->inlineCount = \array_reduce(
-            $inlineRecord,
-            /** @param array{count:int,num:int} $record */
-            function (int $sum, $record): int {
-                return $sum + $record['count'];
-            },
-            0
-        );
+        $this->book = $book;
     }
-
+    
     /** @return self */
     public static function initial()
     {
         return new self;
     }
-
-    public function mutatingSetBlock(Footnote $Footnote): void
+    
+    public function addTocElement(int $level, string $text, string $id): void
     {
-        $this->Footnotes[$Footnote->title()] = $Footnote;
+        $this->book[$id]['text'] = $text;
+        $this->book[$id]['level'] = $level;
     }
-
-    /** @return array{num:int,count:int}|null */
-    public function mutatingGetNextInlineNumbers(string $title): ?array
+    
+    public function lookup(string $id): ?string
     {
-        if (! isset($this->Footnotes[$title])) {
-            return null;
-        }
-
-        if (! isset($this->inlineRecord[$title])) {
-            $this->inlineRecord[$title] = [
-                'count' => 0,
-                'num' => ++$this->inlineCount,
-            ];
-        }
-
-        ++$this->inlineRecord[$title]['count'];
-
-        return $this->inlineRecord[$title];
+        return $this->book[$id] ?? null;
     }
-
-    /** @return array<string,Footnote> */
+    
+    /** @return array<string, string> */
     public function all()
     {
-        return $this->Footnotes;
+        return $this->book;
     }
-
-    public function inlineRecord(string $title): int
-    {
-        return $this->inlineRecord[$title]['count'] ?? 0;
-    }
-
+    
     /** @return self */
     public function isolatedCopy(): self
     {
-        return new self($this->Footnotes, $this->inlineRecord);
+        return new self($this->book);
     }
 }
