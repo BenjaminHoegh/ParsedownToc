@@ -178,7 +178,7 @@ class ParsedownToC extends DynamicParent
     /**
      * Returns the parsed ToC.
      *
-     * @param  string $type_return  Type of the return format. "html" or "json".
+     * @param  string $type_return  Type of the return format. "html", "json", or "array".
      * @return string               HTML/JSON string of ToC.
      */
     public function contentsList($type_return = 'html')
@@ -194,6 +194,10 @@ class ParsedownToC extends DynamicParent
 
         if ('json' === strtolower($type_return)) {
             return json_encode($this->contentsListArray);
+        }
+
+        if ('array' === strtolower($type_return)) {
+            return $this->contentsListArray;
         }
 
         // Forces to return ToC as "html"
