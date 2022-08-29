@@ -179,7 +179,7 @@ class ParsedownToC extends DynamicParent
      * Returns the parsed ToC.
      *
      * @param  string $type_return  Type of the return format. "html", "json", or "array".
-     * @return string               HTML/JSON string of ToC.
+     * @return string|array         HTML/JSON string, or array of ToC.
      */
     public function contentsList($type_return = 'html')
     {
