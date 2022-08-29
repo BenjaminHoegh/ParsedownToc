@@ -102,10 +102,10 @@ echo $body; // Main body
     - `body(string $text)`:
       - Returns the parsed content WITHOUT parsing `[toc]` tag.
     - `contentsList([string $type_return='html'])`:
-      - Returns the ToC, the table of contents, in HTML or JSON.
+      - Returns the ToC, the table of contents, in HTML, JSON or as an array.
       - **Optional argument:**
         - `$type_return`:
-          - `html` or `json` can be specified.
+          - `html`, `json`, or `array` can be specified.
           - **Default:** `html`
       - Alias method: `contentsList(string $type_return)`
     - `setTagToc(string $tag='[tag]')`:
