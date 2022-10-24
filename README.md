@@ -96,6 +96,13 @@ echo $body; // Main body
       - Use PHP build-in `urlencode` this will disable all other options
       - **Type:** `boolean`
       - **Default:** `false`
+
+    - `url`:
+
+      - Prefixes anchor with the specified URL
+      - **Type:** `string`
+      - **Default:** ``
+
   - **Methods:**
     - `text(string $text)`:
       - Returns the parsed content and `[toc]` tag(s) parsed as well.

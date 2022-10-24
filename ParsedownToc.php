@@ -39,6 +39,7 @@ class ParsedownToC extends DynamicParent
         'transliterate' => false,
         'urlencode' => false,
         'blacklist' => [],
+        'url' => '',
     );
 
     /**
@@ -465,7 +466,7 @@ class ParsedownToC extends DynamicParent
         $text  = $this->fetchText($Content['text']);
         $id    = $Content['id'];
         $level = (integer) trim($Content['level'], 'h');
-        $link  = "[${text}](#${id})";
+        $link  = "[${text}]({$this->options['url']}#${id})";
 
         if ($this->firstHeadLevel === 0) {
             $this->firstHeadLevel = $level;
