@@ -41,6 +41,7 @@ class ParsedownToC extends DynamicParent
         'blacklist' => [],
         'url' => '',
     );
+    protected $options = array();
 
     /**
      * Version requirement check.
