@@ -42,6 +42,8 @@ class ParsedownToC extends DynamicParent
         'url' => '',
     );
 
+    protected $options;
+
     /**
      * Version requirement check.
      */
