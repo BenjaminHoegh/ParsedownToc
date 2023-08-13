@@ -19,9 +19,9 @@
         "erusev/parsedown":"^1.7"
     },
     "autoload":{
-        "files":[
-            "ParsedownToc.php"
-        ]
+        "psr-0": {
+            "": "src/"
+        }
     },
     "type":"library",
     "license":"MIT",
