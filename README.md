@@ -1,135 +1,80 @@
+
+# ParsedownToc
 ![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 ![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 
-# ParsedownToc
+**ParsedownToc** is an extension for Parsedown and ParsedownExtra that introduces advanced features for developers working with Markdown.
 
----
+## Features:
+- **Speed:** Super-fast processing.
+- **Configurability:** Easily customizable for different use-cases.
+- **Custom Header IDs:** Full support for custom header ids.
 
-Extension for Parsedown and ParsedownExtra
+## Prerequisites:
+- Requires Parsedown 1.7.4 or later.
 
-## Features
+## Installation:
+1. Use Composer to install the [ParsedownToc package from packagist.org](https://packagist.org/packages/hoegh/ParsedownToc):
+   ```bash
+   composer require benjaminhoegh/ParsedownToc
+   ```
+2. Alternatively, download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest) and include `Parsedown.php`.
 
-- Super fast
-
-- Configurable
-
-- Full support for custom header ids
-
-## Installation
-
-> Require Parsedown 1.7.4 or later
-
-Install the  [composer package](https://packagist.org/packages/hoegh/ParsedownToc "The ParsedownToc package on packagist.org"):
-
-```
-composer require benjaminhoegh/ParsedownToc
-```
-
-Or download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest "The latest release of ParsedownToc") and include `Parsedown.php`
-
-## Examples
-
+## Usage:
+**Basic example:**
 ```php
 <?php
-// autoload
-require 'vendor/autoload.php';
+require 'vendor/autoload.php';  // autoload
 
-// Sample Markdown with '[toc]' tag included
-$content = file_get_contents('sample.md');
-
+$content = file_get_contents('sample.md');  // Sample Markdown with '[toc]' tag
 $ParsedownToc = new ParsedownToc();
 
-// Parses '[toc]' tag to ToC if exists
-$html = $ParsedownToc->text($content);
-
+$html = $ParsedownToc->text($content);  // Parses '[toc]' tag to ToC if exists
 echo $html;
 ```
 
-With the `contentsList()` method, you can get just the "ToC".
-
+**Separate body and ToC:**
 ```php
 <?php
-// Parse body and ToC separately
 $content = file_get_contents('sample.md');
 $ParsedownToc = new \ParsedownToc();
 
 $body = $ParsedownToc->body($content);
 $toc  = $ParsedownToc->contentsList();
 
-echo $toc;  // Table of Contents in <ul> list
-echo $body; // Main body
+echo $toc;  // ToC in <ul> list
+echo $body; // Main content
 ```
 
-## Configuration
+## Configuration:
+Use the `ParsedownToc->setOptions(array $options)` method to configure the main class. The available options include:
 
-- **Main Class:** `ParsedownToc->setOptions(array $options)`
-  - **Optional arguments:**
-    - `selectors`:
-      
-      - **Type:** `array`
-      - **Default:** `['h1', 'h2', 'h3', 'h4', 'h5', 'h6']`
-    
-    - `delimiter`:
-      
-      - **Type:** `string`
-      - **Default:** `-`
-    
-    - `limit`:
-      
-      - **Type:** `int`
-      - **Default:** `null`
-    
-    - `lowercase`:
-      
-      - **Type:** `boolean`
-      - **Default:** `true`
-    
-    - `replacements`:
-      
-      - **Type:** `array`
-      - **Default:** `none`
-    
-    - `transliterate`:
-      
-      - **Type:** `boolean`
-      - **Default:** `false`
-    
-    - `urlencode`:
-      
-      - Use PHP build-in `urlencode` this will disable all other options
-      - **Type:** `boolean`
-      - **Default:** `false`
+| Option         | Type     | Default                                 | Description                                                   |
+|----------------|----------|-----------------------------------------|---------------------------------------------------------------|
+| selectors      | array    | ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']    |                                                               |
+| delimiter      | string   | `-`                                     |                                                               |
+| limit          | int      | `null`                                  |                                                               |
+| lowercase      | boolean  | `true`                                  |                                                               |
+| replacements   | array    | none                                    |                                                               |
+| transliterate  | boolean  | `false`                                 |                                                               |
+| urlencode      | boolean  | `false`                                 | Uses PHP built-in `urlencode` and disables all other options. |
+| url            | string   | ``                                      | Prefixes anchor with the specified URL.                       |
 
-    - `url`:
+### Methods:
+The ParsedownToc class offers several methods for different functionalities:
 
-      - Prefixes anchor with the specified URL
-      - **Type:** `string`
-      - **Default:** ``
-
-  - **Methods:**
-    - `text(string $text)`:
-      - Returns the parsed content and `[toc]` tag(s) parsed as well.
-    - `body(string $text)`:
-      - Returns the parsed content WITHOUT parsing `[toc]` tag.
-    - `contentsList([string $type_return='html'])`:
-      - Returns the ToC, the table of contents, in HTML, JSON or as an array.
-      - **Optional argument:**
-        - `$type_return`:
-          - `html`, `json`, or `array` can be specified.
-          - **Default:** `html`
-      - Alias method: `contentsList(string $type_return)`
-    - `setTocBlacklist(array $blacklist)`
-      - Used to blacklist id's to prevent generation header anchors with id's in the list
-    - `setTocTag(string $tag='[tag]')`:
-      - Sets user defined ToC markdown tag. Use this method before `text()` or `body()` method if you want to use the ToC tag rather than the "`[toc]`".
-      - Empty value sets the default ToC tag.
-    - `setTocSelectors(array $array)`
-    - `setTocdelimiter(string $delimiter)`
-    - `setTocLimit(int $limit)`
-    - `setTocLowercase(bool $boolean)`
-    - `setTocReplacements(array $replacements)`
-    - `setTocTransliterate(bool $boolean)`
-    - `setTocUrlencode(bool $boolean)`
-    - `setTocUrl(string $url)`
-
-
+- **text(string $text):** Returns the parsed content and `[toc]` tag(s).
+- **body(string $text):** Returns the parsed content without the `[toc]` tag.
+- **contentsList([string $type_return='html']):** Returns the ToC in HTML, JSON, or as an array.
+    - _Optional:_ Specify the return type as `html`, `json`, or `array`.
+- **setTocSelectors(array $array):** Allows you to set specific selectors.
+- **setTocDelimiter(string $delimiter):** Define a custom delimiter.
+- **setTocLimit(int $limit):** Set a limit for the table of contents.
+- **setTocLowercase(bool $boolean):** Choose whether the output should be in lowercase.
+- **setTocReplacements(array $replacements):** Provide replacements for specific content.
+- **setTocTransliterate(bool $boolean):** Specify if transliterations should be made.
+- **setTocUrlencode(bool $boolean):** Decide if you want to use PHP's built-in `urlencode`.
+- **setTocBlacklist(array $blacklist):** Blacklist specific IDs from header anchor generation.
+- **setTocUrl(string $url):** Set a specific URL prefix for anchors.
+- **setTocTag(string $tag='[tag]'):** Set a custom ToC markdown tag.
+- **setTocId(string $id):** Set a custom ID for the table of contents.
