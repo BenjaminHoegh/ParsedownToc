@@ -17,6 +17,8 @@ Extension for Parsedown and ParsedownExtra
 
 ## Installation
 
+> Require Parsedown 1.7.4 or later
+
 Install the  [composer package](https://packagist.org/packages/hoegh/ParsedownToc "The ParsedownToc package on packagist.org"):
 
 ```
@@ -116,6 +118,18 @@ echo $body; // Main body
           - `html`, `json`, or `array` can be specified.
           - **Default:** `html`
       - Alias method: `contentsList(string $type_return)`
-    - `setTagToc(string $tag='[tag]')`:
+    - `setTocBlacklist(array $blacklist)`
+      - Used to blacklist id's to prevent generation header anchors with id's in the list
+    - `setTocTag(string $tag='[tag]')`:
       - Sets user defined ToC markdown tag. Use this method before `text()` or `body()` method if you want to use the ToC tag rather than the "`[toc]`".
       - Empty value sets the default ToC tag.
+    - `setTocSelectors(array $array)`
+    - `setTocdelimiter(string $delimiter)`
+    - `setTocLimit(int $limit)`
+    - `setTocLowercase(bool $boolean)`
+    - `setTocReplacements(array $replacements)`
+    - `setTocTransliterate(bool $boolean)`
+    - `setTocUrlencode(bool $boolean)`
+    - `setTocUrl(string $url)`
+
+
