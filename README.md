@@ -60,7 +60,7 @@ echo $body; // Main body
 
 ## Configuration
 
-- **Main Class:** `ParsedownToc(array $options = null)`
+- **Main Class:** `ParsedownToc->setOptions(array $options)`
   - **Optional arguments:**
     - `selectors`:
       
