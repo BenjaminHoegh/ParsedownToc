@@ -13,7 +13,7 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    const VERSION = '1.2';
+    const VERSION = '1.5';
     const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
 
     protected $options = [];
@@ -57,6 +57,127 @@ class ParsedownToc extends ParsedownTocParentAlias
     public function setOptions(array $options) : void
     {
         $this->options = array_merge($this->options, $options);
+    }
+
+    /**
+     * Set the selectors option.
+     *
+     * @param array $selectors The selectors to set.
+     * @return void
+     */
+    public function setTocSelectors(array $selectors) : void
+    {
+        $this->options['selectors'] = $selectors;
+    }
+
+    /**
+     * Set the delimiter option.
+     *
+     * @param string $delimiter The delimiter to set.
+     * @return void
+     */
+    public function setTocDelimiter(string $delimiter) : void
+    {
+        $this->options['delimiter'] = $delimiter;
+    }
+
+    /**
+     * Set the limit option.
+     *
+     * @param int|null $limit The limit to set.
+     * @return void
+     */
+    public function setTocLimit(?int $limit) : void
+    {
+        $this->options['limit'] = $limit;
+    }
+
+    /**
+     * Set the lowercase option.
+     *
+     * @param bool $lowercase The lowercase option to set.
+     * @return void
+     */
+    public function setTocLowercase(bool $lowercase) : void
+    {
+        $this->options['lowercase'] = $lowercase;
+    }
+
+    /**
+     * Set the replacements option.
+     *
+     * @param array|null $replacements The replacements to set.
+     * @return void
+     */
+    public function setTocReplacements(?array $replacements) : void
+    {
+        $this->options['replacements'] = $replacements;
+    }
+
+    /**
+     * Set the transliterate option.
+     *
+     * @param bool $transliterate The transliterate option to set.
+     * @return void
+     */
+    public function setTocTransliterate(bool $transliterate) : void
+    {
+        $this->options['transliterate'] = $transliterate;
+    }
+
+    /**
+     * Set the urlencode option.
+     *
+     * @param bool $urlencode The urlencode option to set.
+     * @return void
+     */
+    public function setTocUrlencode(bool $urlencode) : void
+    {
+        $this->options['urlencode'] = $urlencode;
+    }
+
+    /**
+     * Set the blacklist option.
+     *
+     * @param array $blacklist The blacklist to set.
+     * @return void
+     */
+    public function setTocBlacklist(array $blacklist) : void
+    {
+        $this->options['blacklist'] = $blacklist;
+    }
+
+    /**
+     * Set the url option.
+     *
+     * @param string $url The url to set.
+     * @return void
+     */
+    public function setTocUrl(string $url) : void
+    {
+        $this->options['url'] = $url;
+    }
+
+    /**
+     * Set the toc_tag option.
+     *
+     * @param string $toc_tag The toc_tag to set.
+     * @return void
+     */
+    public function setTocTag(string $toc_tag) : void
+    {
+        $this->options['toc_tag'] = $toc_tag;
+    }
+
+    /**
+     * Set the toc_id option.
+     *
+     * @param string $toc_id The toc_id to set.
+     * @return void
+     */
+    public function setTocId(string $toc_id) : void
+    {
+        $this->options['toc_id'] = $toc_id;
     }
 
     /**
@@ -248,7 +369,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * Decodes the hashed ToC tag to an original tag and replaces.
      *
      * This is used to avoid parsing user defined ToC tag which includes "_" in
-     * their tag such as "[[_toc_]]". Unless it will be parsed as:
+     * their tag such as "[[_]]". Unless it will be parsed as:
      *   "<p>[[<em>TOC</em>]]</p>"
      *
      * @param  string $text
@@ -271,7 +392,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * Encodes the ToC tag to a hashed tag and replace.
      *
      * This is used to avoid parsing user defined ToC tag which includes "_" in
-     * their tag such as "[[_toc_]]". Unless it will be parsed as:
+     * their tag such as "[[_]]". Unless it will be parsed as:
      *   "<p>[[<em>TOC</em>]]</p>"
      *
      * @param  string $text
@@ -423,10 +544,10 @@ class ParsedownToc extends ParsedownTocParentAlias
             return $html;
         }
 
-        $toc_data = $this->contentsList();
+        $data = $this->contentsList();
         $toc_id   = $this->getTocIdAttribute();
         $needle  = '<p>' . $tag_origin . '</p>';
-        $replace = "<div id=\"{$toc_id}\">{$toc_data}</div>";
+        $replace = "<div id=\"{$toc_id}\">{$data}</div>";
 
         return str_replace($needle, $replace, $html);
     }
