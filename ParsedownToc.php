@@ -23,7 +23,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         'limit' => null,
         'lowercase' => true,
         'replacements' => null,
-        'transliterate' => false,
+        'transliterate' => true,
         'urlencode' => false,
         'blacklist' => [],
         'url' => '',
@@ -333,17 +333,14 @@ class ParsedownToc extends ParsedownTocParentAlias
             return urlencode($str);
         }
 
-        // Transliterate to ASCII
-        $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-
         // Make custom replacements
         if(!empty($this->options['replacements'])) {
             $str = preg_replace(array_keys($this->options['replacements']), $this->options['replacements'], $str);
         }
-
+        
         // Transliterate characters to ASCII
         if ($this->options['transliterate']) {
-            $str = str_replace(array_keys($char_map), $char_map, $str);
+            $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
         }
 
         // Replace non-alphanumeric characters with our delimiter
