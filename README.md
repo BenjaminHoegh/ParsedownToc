@@ -1,5 +1,5 @@
-![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/parsedownToc.svg?style=flat-square)
-![GitHub](https://img.shields.io/github/license/BenjaminHoegh/parsedownToc.svg?style=flat-square)
+![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
+![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 
 # ParsedownToc
 
@@ -13,31 +13,32 @@ Extension for Parsedown and ParsedownExtra
 
 - Configurable
 
-- Tested in PHP 7.1 to 8.0
-
 - Full support for custom header ids
 
 ## Installation
 
-Install the  [composer package](https://packagist.org/packages/hoegh/parsedowntoc "The ParsedownToc package on packagist.org"):
+Install the  [composer package](https://packagist.org/packages/hoegh/ParsedownToc "The ParsedownToc package on packagist.org"):
 
 ```
-composer require benjaminhoegh/parsedowntoc
+composer require benjaminhoegh/ParsedownToc
 ```
 
-Or download the [latest release](https://github.com/BenjaminHoegh/parsedownToc/releases/latest "The latest release of parsedownToc") and include `Parsedown.php`
+Or download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest "The latest release of ParsedownToc") and include `Parsedown.php`
 
 ## Examples
 
 ```php
 <?php
+// autoload
+require 'vendor/autoload.php';
+
 // Sample Markdown with '[toc]' tag included
 $content = file_get_contents('sample.md');
 
-$Parsedown = new ParsedownToC();
+$ParsedownToc = new ParsedownToc();
 
 // Parses '[toc]' tag to ToC if exists
-$html = $Parsedown->text($content);
+$html = $ParsedownToc->text($content);
 
 echo $html;
 ```
@@ -48,10 +49,10 @@ With the `contentsList()` method, you can get just the "ToC".
 <?php
 // Parse body and ToC separately
 $content = file_get_contents('sample.md');
-$Parsedown = new \ParsedownToC();
+$ParsedownToc = new \ParsedownToc();
 
-$body = $Parsedown->body($content);
-$toc  = $Parsedown->contentsList();
+$body = $ParsedownToc->body($content);
+$toc  = $ParsedownToc->contentsList();
 
 echo $toc;  // Table of Contents in <ul> list
 echo $body; // Main body
@@ -59,7 +60,7 @@ echo $body; // Main body
 
 ## Configuration
 
-- **Main Class:** `ParsedownToC(array $options = null)`
+- **Main Class:** `ParsedownToc(array $options = null)`
   - **Optional arguments:**
     - `selectors`:
       
