@@ -192,7 +192,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     protected function blockHeader($Line)
     {
         // Use parent blockHeader method to process the $Line to $Block
-        $Block = ParsedownTocParentAlias::blockHeader($Line);
+        $Block = parent::blockHeader($Line);
 
         if (!empty($Block)) {
             // Get the text of the heading
@@ -237,7 +237,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     protected function blockSetextHeader($Line, array $Block = null)
     {
         // Use parent blockHeader method to process the $Line to $Block
-        $Block = ParsedownTocParentAlias::blockSetextHeader($Line, $Block);
+        $Block = parent::blockSetextHeader($Line, $Block);
 
         if (!empty($Block)) {
             // Get the text of the heading
@@ -272,7 +272,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     /**
      * Parses the given markdown string to an HTML string but it leaves the ToC
-     * tag as is. It's an alias of the parent method "\ParsedownTocParentAlias::text()".
+     * tag as is. It's an alias of the parent method "\parent::text()".
      *
      * @param  string $text  Markdown string to be parsed.
      * @return string        Parsed HTML string.
@@ -280,7 +280,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     public function body($text) : string
     {
         $text = $this->encodeTagToHash($text);   // Escapes ToC tag temporary
-        $html = ParsedownTocParentAlias::text($text);      // Parses the markdown text
+        $html = parent::text($text);      // Parses the markdown text
         $html = $this->decodeTagFromHash($html); // Unescape the ToC tag
 
         return $html;
