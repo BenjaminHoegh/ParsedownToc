@@ -340,7 +340,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         
         // Transliterate characters to ASCII
         if ($this->options['transliterate']) {
-            $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+            $str = iconv('UTF-8', 'ASCII//IGNORE', $str);
         }
 
         // Replace non-alphanumeric characters with our delimiter
