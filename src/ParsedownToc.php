@@ -42,7 +42,9 @@ class ParsedownToc extends ParsedownTocParentAlias
             throw new Exception($msg_error);
         }
 
-        parent::__construct();
+        if (is_callable('parent::__construct')) {
+            parent::__construct();
+        }
 
         // Initialize default options
         $this->options = $this->defaultOptions;
