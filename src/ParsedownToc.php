@@ -37,7 +37,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     {
         if (version_compare(\Parsedown::version, self::VERSION_PARSEDOWN_REQUIRED) < 0) {
             $msg_error  = 'Version Error.' . PHP_EOL;
-            $msg_error .= '  ParsedownExtended requires a later version of Parsedown.' . PHP_EOL;
+            $msg_error .= '  ParsedownToc requires a later version of Parsedown.' . PHP_EOL;
             $msg_error .= '  - Current version : ' . \Parsedown::version . PHP_EOL;
             $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_REQUIRED .' and later'. PHP_EOL;
             throw new Exception($msg_error);
@@ -47,7 +47,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         if (class_exists('ParsedownExtra')) {
             if (version_compare(\ParsedownExtra::version, self::VERSION_PARSEDOWN_EXTRA_REQUIRED) < 0) {
                 $msg_error  = 'Version Error.' . PHP_EOL;
-                $msg_error .= '  ParsedownExtended requires a later version of ParsedownExtra.' . PHP_EOL;
+                $msg_error .= '  ParsedownToc requires a later version of ParsedownExtra.' . PHP_EOL;
                 $msg_error .= '  - Current version : ' . \ParsedownExtra::version . PHP_EOL;
                 $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED .' and later'. PHP_EOL;
                 throw new Exception($msg_error);
