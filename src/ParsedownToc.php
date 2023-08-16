@@ -15,6 +15,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 {
     const VERSION = '1.5.1';
     const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
+    const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
 
     protected $options = [];
     protected $defaultOptions = array(
@@ -36,10 +37,21 @@ class ParsedownToc extends ParsedownTocParentAlias
     {
         if (version_compare(\Parsedown::version, self::VERSION_PARSEDOWN_REQUIRED) < 0) {
             $msg_error  = 'Version Error.' . PHP_EOL;
-            $msg_error .= '  ParsedownToc requires a later version of Parsedown.' . PHP_EOL;
+            $msg_error .= '  ParsedownExtended requires a later version of Parsedown.' . PHP_EOL;
             $msg_error .= '  - Current version : ' . \Parsedown::version . PHP_EOL;
             $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_REQUIRED .' and later'. PHP_EOL;
             throw new Exception($msg_error);
+        }
+
+        # If ParsedownExtra is installed, check its version
+        if (class_exists('ParsedownExtra')) {
+            if (version_compare(\ParsedownExtra::version, self::VERSION_PARSEDOWN_EXTRA_REQUIRED) < 0) {
+                $msg_error  = 'Version Error.' . PHP_EOL;
+                $msg_error .= '  ParsedownExtended requires a later version of ParsedownExtra.' . PHP_EOL;
+                $msg_error .= '  - Current version : ' . \ParsedownExtra::version . PHP_EOL;
+                $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED .' and later'. PHP_EOL;
+                throw new Exception($msg_error);
+            }
         }
 
         if (is_callable('parent::__construct')) {
