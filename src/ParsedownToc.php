@@ -13,7 +13,7 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    const VERSION = '1.5';
+    const VERSION = '1.5.1';
     const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
 
     protected $options = [];
