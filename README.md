@@ -1,9 +1,8 @@
 <p align="center">
   <a href="https://github.com/BenjaminHoegh/ParsedownToc">
-    <img alt="ParsedownToc" src="https://github.com/BenjaminHoegh/ParsedownToc/blob/master/.github/ParsedownToc.png" height="330" />
+    <img alt="ParsedownToc" src="https://github.com/BenjaminHoegh/ParsedownToc/blob/master/.github/parsedownToc.png" height="330" />
   </a>
 </p>
-
 
 # ParsedownToc
 ![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
