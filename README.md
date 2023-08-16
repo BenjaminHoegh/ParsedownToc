@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/BenjaminHoegh/ParsedownToc">
-    <img alt="ParsedownToc" src="https://github.com/BenjaminHoegh/ParsedownToc/blob/master/.github/ParsedownToc.png" height="330" />
+    <img alt="ParsedownToc" src="https://github.com/BenjaminHoegh/ParsedownToc/blob/master/.github/parsedownToc.png" height="330" />
   </a>
 
   <h3 align="center">Parsedown ToC</h3>
