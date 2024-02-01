@@ -13,10 +13,12 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    const VERSION = '1.5.1';
+    const VERSION = '1.6.0';
     const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
 
+    private $createAnchorIDCallback = null;
+    
     protected $options = [];
     protected $defaultOptions = array(
         'selectors' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
@@ -194,46 +196,28 @@ class ParsedownToc extends ParsedownTocParentAlias
         $this->options['toc_id'] = $toc_id;
     }
 
-    /**
+
+
+    **
      * Heading process.
      * Creates heading block element and stores to the ToC list. It overrides
      * the parent method: \Parsedown::blockHeader() and returns $Block array if
      * the $Line is a heading element.
      *
-     * @param  array $Line  Array that Parsedown detected as a block type element.
+     * @param  array $Line Array that Parsedown detected as a block type element.
      * @return void|array   Array of Heading Block.
      */
     protected function blockHeader($Line)
     {
-        // Use parent blockHeader method to process the $Line to $Block
         $Block = parent::blockHeader($Line);
 
-        if (!empty($Block)) {
-            // Get the text of the heading
-            if (isset($Block['element']['text'])) {
-                $text = $Block['element']['text'];
-            }
-
-            // Get the heading level. Levels are h1, h2, ..., h6
+        if (! empty($Block)) {
+            $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
             $level = $Block['element']['name'];
+            $id = $Block['element']['attributes']['id'] ?? $this->createAnchorID($text);
 
-            // Get the anchor of the heading to link from the ToC list
-            $id = isset($Block['element']['attributes']['id']) ?
-                $Block['element']['attributes']['id'] : $this->createAnchorID($text);
-
-            // Set attributes to head tags
-            $Block['element']['attributes']['id'] = $id;
-
-            // Check if level are defined as a selector
-            if (in_array($level, $this->options['selectors'])) {
-
-                // Add/stores the heading element info to the ToC list
-                $this->setContentsList(array(
-                    'text'  => $text,
-                    'id'    => $id,
-                    'level' => $level
-                ));
-            }
+            $Block['element']['attributes'] = ['id' => $id];
+            $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
 
             return $Block;
         }
@@ -248,37 +232,21 @@ class ParsedownToc extends ParsedownTocParentAlias
     * @param  array $Line Array that Parsedown detected as a block type element.
     * @return void|array Array of Heading Block.
      */
-    protected function blockSetextHeader($Line, array $Block = null)
+    protected function blockSetextHeader($Line, $Block = null)
     {
-        // Use parent blockHeader method to process the $Line to $Block
+        if (!$this->getSetting('headings')) {
+            return;
+        }
+
         $Block = parent::blockSetextHeader($Line, $Block);
 
-        if (!empty($Block)) {
-            // Get the text of the heading
-            if (isset($Block['element']['text'])) {
-                $text = $Block['element']['text'];
-            }
-
-            // Get the heading level. Levels are h1, h2, ..., h6
+        if (! empty($Block)) {
+            $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
             $level = $Block['element']['name'];
+            $id = $Block['element']['attributes']['id'] ?? $this->createAnchorID($text);
 
-            // Get the anchor of the heading to link from the ToC list
-            $id = isset($Block['element']['attributes']['id']) ?
-            $Block['element']['attributes']['id'] : $this->createAnchorID($text);
-
-            // Set attributes to head tags
-            $Block['element']['attributes']['id'] = $id;
-
-            // Check if level are defined as a selector
-            if (in_array($level, $this->options['selectors'])) {
-
-                // Add/stores the heading element info to the ToC list
-                $this->setContentsList(array(
-                    'text'  => $text,
-                    'id'    => $id,
-                    'level' => $level
-                ));
-            }
+            $Block['element']['attributes'] = ['id' => $id];
+            $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
 
             return $Block;
         }
@@ -301,31 +269,37 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * Returns the parsed ToC.
+     * Returns the contents list in the specified format.
      *
-     * @param  string $type_return  Type of the return format. "html", "json", or "array".
-     * @return string|array         HTML/JSON string, or array of ToC.
+     * @param string $type_return The format of the contents list to return. Default is 'html'.
+     *                            Possible values are 'string', 'html', 'json', and 'array'.
+     * @return string|array       The contents list in the specified format.
+     * @throws InvalidArgumentException If an unknown return type is given.
      */
-    public function contentsList($type_return = 'html')
+    public function contentsList($type_return = 'html'): string
     {
-        if ('html' === strtolower($type_return)) {
-            $result = '';
-            if (! empty($this->contentsListString)) {
-                // Parses the ToC list in markdown to HTML
-                $result = $this->body($this->contentsListString);
-            }
-            return $result;
+        switch (strtolower($type_return)) {
+            case 'string': // for backward compatibility
+            case 'html':
+                return $this->contentsListString ? $this->body($this->contentsListString) : '';
+            case 'json':
+                return json_encode($this->contentsListArray);
+            case 'array':
+                return $this->contentsListArray;
+            default:
+                $backtrace = debug_backtrace();
+                $caller = $backtrace[0];
+                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
+                throw new InvalidArgumentException($errorMessage);
         }
+    }
 
-        if ('json' === strtolower($type_return)) {
-            return json_encode($this->contentsListArray);
-        }
-
-        if ('array' === strtolower($type_return)) {
-            return $this->contentsListArray;
-        }
-
-        return $this->contentsList('html');
+    /**
+     * Allows users to define their own logic for createAnchorID.
+     */
+    public function setCreateAnchorIDCallback(callable $callback): void
+    {
+        $this->createAnchorIDCallback = $callback;
     }
 
     /**
@@ -337,6 +311,11 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function createAnchorID($str) : string
     {
+        // Use user-defined logic if a callback is provided
+        if (is_callable($this->createAnchorIDCallback)) {
+            return call_user_func($this->createAnchorIDCallback, $text, $this->getSettings());
+        }
+        
         // Make sure string is in UTF-8 and strip invalid UTF-8 characters
         $str = mb_convert_encoding((string)$str, 'UTF-8', mb_list_encodings());
 
