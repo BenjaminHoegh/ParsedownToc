@@ -1,18 +1,21 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * This code checks if the class 'ParsedownExtra' exists. If it does, it creates an alias for it called 'ParsedownTocParentAlias'.
  * If 'ParsedownExtra' does not exist, it creates an alias for 'Parsedown' called 'ParsedownTocParentAlias'.
  */
+
 if (class_exists('ParsedownExtra')) {
     class_alias('ParsedownExtra', 'ParsedownTocParentAlias');
 } else {
     class_alias('Parsedown', 'ParsedownTocParentAlias');
 }
 
-
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.2';
+    public const VERSION = '1.5.3';
     public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
     public const MIN_PHP_VERSION = '7.4';
@@ -56,7 +59,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $msg_error  = 'Version Error.' . PHP_EOL;
             $msg_error .= '  ParsedownToc requires a later version of Parsedown.' . PHP_EOL;
             $msg_error .= '  - Current version : ' . \Parsedown::version . PHP_EOL;
-            $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_REQUIRED .' and later'. PHP_EOL;
+            $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_REQUIRED . ' and later' . PHP_EOL;
             throw new Exception($msg_error);
         }
 
@@ -66,10 +69,11 @@ class ParsedownToc extends ParsedownTocParentAlias
                 $msg_error  = 'Version Error.' . PHP_EOL;
                 $msg_error .= '  ParsedownToc requires a later version of ParsedownExtra.' . PHP_EOL;
                 $msg_error .= '  - Current version : ' . \ParsedownExtra::version . PHP_EOL;
-                $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED .' and later'. PHP_EOL;
+                $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED . ' and later' . PHP_EOL;
                 throw new Exception($msg_error);
             }
-
+            
+            /** @psalm-suppress DirectConstructorCall */
             parent::__construct();
         }
 
@@ -83,7 +87,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param array $options The options to set.
      * @return void
      */
-    public function setOptions(array $options) : void
+    public function setOptions(array $options): void
     {
         $this->options = array_merge($this->options, $options);
     }
@@ -94,7 +98,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param array $selectors The selectors to set.
      * @return void
      */
-    public function setTocSelectors(array $selectors) : void
+    public function setTocSelectors(array $selectors): void
     {
         $this->options['selectors'] = $selectors;
     }
@@ -105,7 +109,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param string $delimiter The delimiter to set.
      * @return void
      */
-    public function setTocDelimiter(string $delimiter) : void
+    public function setTocDelimiter(string $delimiter): void
     {
         $this->options['delimiter'] = $delimiter;
     }
@@ -116,7 +120,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param int|null $limit The limit to set.
      * @return void
      */
-    public function setTocLimit(?int $limit) : void
+    public function setTocLimit(?int $limit): void
     {
         $this->options['limit'] = $limit;
     }
@@ -127,7 +131,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param bool $lowercase The lowercase option to set.
      * @return void
      */
-    public function setTocLowercase(bool $lowercase) : void
+    public function setTocLowercase(bool $lowercase): void
     {
         $this->options['lowercase'] = $lowercase;
     }
@@ -138,7 +142,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param array|null $replacements The replacements to set.
      * @return void
      */
-    public function setTocReplacements(?array $replacements) : void
+    public function setTocReplacements(?array $replacements): void
     {
         $this->options['replacements'] = $replacements;
     }
@@ -149,7 +153,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param bool $transliterate The transliterate option to set.
      * @return void
      */
-    public function setTocTransliterate(bool $transliterate) : void
+    public function setTocTransliterate(bool $transliterate): void
     {
         $this->options['transliterate'] = $transliterate;
     }
@@ -160,7 +164,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param bool $urlencode The urlencode option to set.
      * @return void
      */
-    public function setTocUrlencode(bool $urlencode) : void
+    public function setTocUrlencode(bool $urlencode): void
     {
         $this->options['urlencode'] = $urlencode;
     }
@@ -171,7 +175,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param array $blacklist The blacklist to set.
      * @return void
      */
-    public function setTocBlacklist(array $blacklist) : void
+    public function setTocBlacklist(array $blacklist): void
     {
         $this->options['blacklist'] = $blacklist;
     }
@@ -182,7 +186,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param string $url The url to set.
      * @return void
      */
-    public function setTocUrl(string $url) : void
+    public function setTocUrl(string $url): void
     {
         $this->options['url'] = $url;
     }
@@ -193,7 +197,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param string $toc_tag The toc_tag to set.
      * @return void
      */
-    public function setTocTag(string $toc_tag) : void
+    public function setTocTag(string $toc_tag): void
     {
         $this->options['toc_tag'] = $toc_tag;
     }
@@ -204,7 +208,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param string $toc_id The toc_id to set.
      * @return void
      */
-    public function setTocId(string $toc_id) : void
+    public function setTocId(string $toc_id): void
     {
         $this->options['toc_id'] = $toc_id;
     }
@@ -242,13 +246,13 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-    * Heading process.
-    * Creates heading block element and stores to the ToC list. It overrides
-    * the parent method: \Parsedown::blockSetextHeader() and returns $Block array if
-    * the $Line is a heading element.
-    *
-    * @param  array $Line Array that Parsedown detected as a block type element.
-    * @return void|array Array of Heading Block.
+     * Heading process.
+     * Creates heading block element and stores to the ToC list. It overrides
+     * the parent method: \Parsedown::blockSetextHeader() and returns $Block array if
+     * the $Line is a heading element.
+     *
+     * @param  array $Line Array that Parsedown detected as a block type element.
+     * @return void|array Array of Heading Block.
      */
     protected function blockSetextHeader($Line, array $Block = null)
     {
@@ -280,7 +284,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text  Markdown string to be parsed.
      * @return string        Parsed HTML string.
      */
-    public function body($text) : string
+    public function body(string $text): string
     {
         $text = $this->encodeTagToHash($text);   // Escapes ToC tag temporary
         $html = parent::text($text);      // Parses the markdown text
@@ -296,19 +300,21 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $type_return Type of the return format. "string" or "json".
      * @return string HTML/JSON string of ToC.
      */
-    public function contentsList($type_return = 'html'): string
+    public function contentsList(string $type_return = 'html')
     {
         switch (strtolower($type_return)) {
-        case 'string':
-        case 'html':
-            return $this->contentsListString ? $this->body($this->contentsListString) : '';
-        case 'json':
-            return json_encode($this->contentsListArray);
-        default:
-            $backtrace = debug_backtrace();
-            $caller = $backtrace[0];
-            $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
-            throw new InvalidArgumentException($errorMessage);
+            case 'string':
+            case 'html':
+                return $this->contentsListString ? $this->body($this->contentsListString) : '';
+            case 'json':
+                return json_encode($this->contentsListArray);
+            case 'array':
+                return $this->contentsListArray;
+            default:
+                $backtrace = debug_backtrace();
+                $caller = $backtrace[0];
+                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
+                throw new InvalidArgumentException($errorMessage);
         }
     }
 
@@ -331,14 +337,14 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text The text for which to create the anchor ID.
      * @return string The created anchor ID.
      */
-    protected function createAnchorID($text) : string
+    protected function createAnchorID($text): string
     {
         // Use user-defined logic if a callback is provided
         if (is_callable($this->createAnchorIDCallback)) {
             return call_user_func($this->createAnchorIDCallback, $text, $this->options);
         }
 
-        if($this->options['urlencode']) {
+        if ($this->options['urlencode']) {
             $text = urlencode($text);
             // Check AnchorID is unique
             return $this->uniquifyAnchorID($text);
@@ -346,12 +352,12 @@ class ParsedownToc extends ParsedownTocParentAlias
 
         // Lowercase the string
         $text = $this->options['lowercase'] ? mb_strtolower($text, 'UTF-8') : $text;
-        
+
         // Make custom replacements
-        if(!empty($this->options['replacements'])) {
+        if (!empty($this->options['replacements'])) {
             $text = preg_replace(array_keys($this->options['replacements']), $this->options['replacements'], $text);
         }
-        
+
         // Remove non UTF-8 characters
         $text = $this->normalizeString($text);
 
@@ -375,10 +381,11 @@ class ParsedownToc extends ParsedownTocParentAlias
     /**
      * Normalize a string by converting it to encoding it to UTF-8.
      *
-     * @param  string $text The string to be normalized.
-     * @return string The normalized string.
+     * @param string $text The string to be normalized.
+     *
+     * @return array|false|string
      */
-    protected function normalizeString(string $text): string
+    protected function normalizeString(string $text)
     {
         return mb_convert_encoding($text, 'UTF-8', mb_list_encodings());
     }
@@ -488,31 +495,46 @@ class ParsedownToc extends ParsedownTocParentAlias
     {
         $blacklist = $this->options['blacklist'];
 
-         // Initialize the count for this text if not already set
+        // Initialize the count for this text if not already set
         if (!isset($this->anchorDuplicates[$text])) {
             $this->anchorDuplicates[$text] = 0;
         }
 
-        // Check if the given text is not in the blacklist and does not have any duplicates
-        if (!in_array($text, $blacklist) && !isset($this->anchorDuplicates[$text])) {
-            echo $text . PHP_EOL;
-            return $text;
+        // If the text is not in the blacklist and is the first time we see it, return it as is
+        if (!in_array($text, $blacklist) && $this->anchorDuplicates[$text] === 0) {
+            // Increment here to account for the next time we see this text
+            $this->anchorDuplicates[$text]++;
+            return $text; // Return without adding a count
         }
-        
-        $originalText = $text;
-        $count = $this->anchorDuplicates[$originalText] ?? 0;
-        
-        // Generate a unique anchor ID by appending a count to the original text
-        do {
-            $count++;
-            $text = $originalText . '-' . $count;
-        } while (in_array($text, $blacklist) || isset($this->anchorDuplicates[$text]));
 
-        // Store the count for the original text in the duplicates array
-        $this->anchorDuplicates[$originalText] = $count;
+        // For subsequent duplicates, start appending a number starting from 1
+        $originalText = $text;
+
+        /**
+         * @psalm-suppress all
+         * Workaround for Psalm as UnsupportedPropertyReferenceUsage can't be suppressed
+         */
+        $count = &$this->anchorDuplicates[$originalText];
+
+        // Generate a unique anchor ID by appending a count to the original text
+        while (true) {
+            if ($count > 0) { // Only append the count if it's not the first occurrence
+                $text = $originalText . '-' . $count;
+                if (!in_array($text, $blacklist) && !isset($this->anchorDuplicates[$text])) {
+                    break;
+                }
+            }
+            $count++;
+        }
+
+        // Increment the count for the next duplicate
+        $this->anchorDuplicates[$text] = 1; // Initialize the duplicate counter for the new unique text
+        $count++; // Prepare for the next potential duplicate
 
         return $text;
     }
+
+
 
     /**
      * Decodes the hashed ToC tag to an original tag and replaces.
@@ -524,7 +546,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text
      * @return string
      */
-    protected function decodeTagFromHash(string $text) : string
+    protected function decodeTagFromHash(string $text): string
     {
         $salt = $this->getSalt();
         $tag_origin = $this->getTocTag();
@@ -547,7 +569,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text
      * @return string
      */
-    protected function encodeTagToHash(string $text) : string
+    protected function encodeTagToHash(string $text): string
     {
         $salt = $this->getSalt();
         $tag_origin = $this->getTocTag();
@@ -568,7 +590,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text  Markdown text.
      * @return string
      */
-    protected function fetchText(string $text) : string
+    protected function fetchText(string $text): string
     {
         return trim(strip_tags($this->line($text)));
     }
@@ -578,7 +600,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * @return string
      */
-    protected function getTocIdAttribute() : string
+    protected function getTocIdAttribute(): string
     {
         return $this->options['toc_id'];
     }
@@ -588,14 +610,14 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * @return string
      */
-    protected function getSalt() : string
+    protected function getSalt(): string
     {
         static $salt;
         if (isset($salt)) {
             return $salt;
         }
 
-        $salt = hash('md5', time());
+        $salt = hash('md5', strval(time()));
         return $salt;
     }
 
@@ -604,7 +626,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * @return string
      */
-    protected function getTocTag() : string
+    protected function getTocTag(): string
     {
         return $this->options['toc_tag'];
     }
@@ -615,7 +637,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Content   Heading info such as "level","id" and "text".
      * @return void
      */
-    protected function setContentsList(array $Content) : void
+    protected function setContentsList(array $Content): void
     {
         // Stores as an array
         $this->setContentsListAsArray($Content);
@@ -629,7 +651,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Content
      * @return void
      */
-    protected function setContentsListAsArray(array $Content) : void
+    protected function setContentsListAsArray(array $Content): void
     {
         $this->contentsListArray[] = $Content;
     }
@@ -640,7 +662,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Content  Heading info such as "level","id" and "text".
      * @return void
      */
-    protected function setContentsListAsString(array $Content) : void
+    protected function setContentsListAsString(array $Content): void
     {
         $text = $this->fetchText($Content['text']);
         $id = $Content['id'];
@@ -663,7 +685,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  string $text
      * @return string
      */
-    public function text($text) : string
+    public function text($text): string
     {
         // Parses the markdown text except the ToC tag. This also searches
         // the list of contents and available to get from "contentsList()"
