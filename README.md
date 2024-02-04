@@ -22,7 +22,7 @@
 - Requires Parsedown 1.7.4 or later.
 
 ## Installation:
-1. Use Composer to install the [ParsedownToc package from packagist.org](https://packagist.org/packages/hoegh/ParsedownToc):
+1. Use Composer to install the ParsedownToc package from [packagist.org](https://packagist.org/packages/benjaminhoegh/parsedown-toc):
    ```bash
    composer require benjaminhoegh/ParsedownToc
    ```
