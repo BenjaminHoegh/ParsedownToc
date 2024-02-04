@@ -92,7 +92,7 @@ If you want to use your own logic for creating slugs for the headings you can do
 
 Example using [cocur's slugify](https://github.com/cocur/slugify)
 ```php
-$ParsedownExtended->setCreateAnchorIDCallback(function($text, $level) {
+$ParsedownToc->setCreateAnchorIDCallback(function($text, $level) {
     $slugify = new Slugify();
     return $slugify->slugify($text);
 });
