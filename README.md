@@ -5,31 +5,41 @@
 </p>
 
 # ParsedownToc
+
 ![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 ![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 
 **ParsedownToc** is an extension for Parsedown and ParsedownExtra that introduces advanced features for developers working with Markdown. It is based on [@KEINOS toc extention](https://github.com/KEINOS/parsedown-extension_table-of-contents)
 
 > [!NOTE]
-> Does not yet include the lasted changes in ParsedownExtended v1.2.0
+> Does not yet include the latest changes in ParsedownExtended v1.2.0
 
 ## Features:
+
 - **Speed:** Super-fast processing.
 - **Configurability:** Easily customizable for different use-cases.
 - **Custom Header IDs:** Full support for custom header ids.
 
 ## Prerequisites:
+
 - Requires Parsedown 1.7.4 or later.
 
 ## Installation:
-1. Use Composer to install the ParsedownToc package from [packagist.org](https://packagist.org/packages/benjaminhoegh/parsedown-toc):
+
+Ensure you have Composer installed on your system.
+
+1. Install the ParsedownToc package using Composer:
+
    ```bash
    composer require benjaminhoegh/ParsedownToc
    ```
-2. Alternatively, download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest) and include `Parsedown.php`.
+
+2. Alternatively, you can download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest) and include `Parsedown.php` in your project.
 
 ## Usage:
-**Basic example:**
+
+### Basic example:
+
 ```php
 <?php
 require 'vendor/autoload.php';  // autoload
@@ -41,7 +51,8 @@ $html = $ParsedownToc->text($content);  // Parses '[toc]' tag to ToC if exists
 echo $html;
 ```
 
-**Separate body and ToC:**
+### Separate body and ToC:
+
 ```php
 <?php
 $content = file_get_contents('sample.md');
@@ -55,7 +66,8 @@ echo $body; // Main content
 ```
 
 ## Configuration:
-Use the `ParsedownToc->setOptions(array $options)` method to configure the main class. The available options include:
+
+The `ParsedownToc->setOptions(array $options)` method allows you to configure the main class. Below are the available options along with their default values and descriptions:
 
 | Option         | Type     | Default                                 | Description                                                   |
 |----------------|----------|-----------------------------------------|---------------------------------------------------------------|
@@ -66,9 +78,10 @@ Use the `ParsedownToc->setOptions(array $options)` method to configure the main 
 | replacements   | array    | none                                    |                                                               |
 | transliterate  | boolean  | `false`                                 |                                                               |
 | urlencode      | boolean  | `false`                                 | Uses PHP built-in `urlencode` and disables all other options. |
-| url            | string   | ``                                      | Prefixes anchor with the specified URL.                       |
+| prefix         | string   | ``                                      | Prefixes anchor with the specified URL.                       |
 
 ### Methods:
+
 The ParsedownToc class offers several methods for different functionalities:
 
 - **text(string $text):** Returns the parsed content and `[toc]` tag(s).
@@ -88,15 +101,14 @@ The ParsedownToc class offers several methods for different functionalities:
 - **setTocId(string $id):** Set a custom ID for the table of contents.
 
 ### Custom Anchors
-If you want to use your own logic for creating slugs for the headings you can do so by using `setCreateAnchorIDCallback`
 
-Example using [cocur's slugify](https://github.com/cocur/slugify)
+If you want to use your own logic for creating slugs for the headings, you can do so by using `setCreateAnchorIDCallback`.
+
+Example using [cocur's slugify](https://github.com/cocur/slugify):
+
 ```php
 $ParsedownToc->setCreateAnchorIDCallback(function($text, $level) {
     $slugify = new Slugify();
     return $slugify->slugify($text);
 });
 ```
-
-
-
