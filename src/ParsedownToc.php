@@ -186,9 +186,9 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param string $url The url to set.
      * @return void
      */
-    public function setTocUrl(string $url): void
+    public function setTocPrefix(string $url): void
     {
-        $this->options['url'] = $url;
+        $this->options['prefix'] = $url;
     }
 
     /**
@@ -211,6 +211,17 @@ class ParsedownToc extends ParsedownTocParentAlias
     public function setTocId(string $toc_id): void
     {
         $this->options['toc_id'] = $toc_id;
+    }
+
+
+    /**
+     * Returns the options of the ParsedownToc object.
+     *
+     * @return array The options of the ParsedownToc object.
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
     }
 
     /**

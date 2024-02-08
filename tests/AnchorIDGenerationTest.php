@@ -94,25 +94,34 @@ class AnchorIDGenerationTest extends TestCase
     }
 
     /**
-     * This test case verifies the behavior of the sanitizeAnchor method by testing various input scenarios.
+     * Test case for sanitizing anchor IDs.
      */
     public function testAnchorIDSanitizeAnchor()
     {
-        $this->parsedownToc->setOptions(['delimiter' => '_']);
-        
         $text = "heading";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
         $this->assertEquals('heading', $result);
 
         $text = "heading with spaces";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
-        $this->assertEquals('heading_with_spaces', $result);
+        $this->assertEquals('heading-with-spaces', $result);
 
         $text = "heading with special xxxxxxxxxxx@xxxxxxxx";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
-        $this->assertEquals('heading_with_special_xxxxxxxxxxx_xxxxxxxx', $result);
+        $this->assertEquals('heading-with-special-xxxxxxxxxxx-xxxxxxxx', $result);
     }
 
+    /**
+     * Test case for sanitizing anchor IDs with a custom delimiter.
+     */
+    public function testAnchorIDSanitizeAnchorCustomDelimiter()
+    {
+        $this->parsedownToc->setOptions(['delimiter' => '&']);
+
+        $text = "heading with spaces";
+        $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
+        $this->assertEquals('heading&with&spaces', $result);
+    }
 
     /**
      * Invokes a protected or private method of an object using reflection.
