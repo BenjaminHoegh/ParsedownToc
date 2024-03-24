@@ -309,7 +309,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * If the arg is "string" then it returns the ToC in HTML string.
      *
      * @param  string $type_return Type of the return format. "string" or "json".
-     * @return string HTML/JSON string of ToC.
+     * @return string|array HTML/JSON string of ToC.
      */
     public function contentsList(string $type_return = 'html')
     {
