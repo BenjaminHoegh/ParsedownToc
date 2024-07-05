@@ -678,7 +678,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         $text = $this->fetchText($Content['text']);
         $id = $Content['id'];
         $level = (int) trim($Content['level'], 'h');
-        $link = "[{$text}](#{$id})";
+        $link = "[{$text}]({$this->options['url']}#{$id})";
 
         if ($this->firstHeadLevel === 0) {
             $this->firstHeadLevel = $level;
