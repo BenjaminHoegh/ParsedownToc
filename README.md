@@ -78,7 +78,7 @@ The `ParsedownToc->setOptions(array $options)` method allows you to configure th
 | replacements   | array    | none                                    |                                                               |
 | transliterate  | boolean  | `false`                                 |                                                               |
 | urlencode      | boolean  | `false`                                 | Uses PHP built-in `urlencode` and disables all other options. |
-| prefix         | string   | ``                                      | Prefixes anchor with the specified URL.                       |
+| url            | string   | ``                                      | Prefixes anchor with the specified URL.                       |
 
 ### Methods:
 
