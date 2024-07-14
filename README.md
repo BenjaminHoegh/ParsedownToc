@@ -96,7 +96,7 @@ The ParsedownToc class offers several methods for different functionalities:
 - **setTocTransliterate(bool $boolean):** Specify if transliterations should be made.
 - **setTocUrlencode(bool $boolean):** Decide if you want to use PHP's built-in `urlencode`.
 - **setTocBlacklist(array $blacklist):** Blacklist specific IDs from header anchor generation.
-- **setTocPrefix(string $url):** Set a specific URL prefix for anchors.
+- **setTocUrl(string $url):** Set a specific URL prefix for anchors.
 - **setTocTag(string $tag='[tag]'):** Set a custom ToC markdown tag.
 - **setTocId(string $id):** Set a custom ID for the table of contents.
 
