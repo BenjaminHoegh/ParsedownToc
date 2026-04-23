@@ -15,7 +15,7 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.5';
+    public const VERSION = '2.0.0';
     public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
     public const MIN_PHP_VERSION = '7.4';
@@ -312,11 +312,9 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     public function body(string $text): string
     {
-        $text = $this->encodeTagToHash($text);   // Escapes ToC tag temporary
-        $html = parent::text($text);      // Parses the markdown text
-        $html = $this->decodeTagFromHash($html); // Unescape the ToC tag
+        $this->resetParserState();
 
-        return $html;
+        return $this->renderMarkdown($text);
     }
 
     /**
@@ -331,7 +329,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         switch (strtolower($type_return)) {
             case 'string':
             case 'html':
-                return $this->contentsListString ? $this->body($this->contentsListString) : '';
+                return $this->contentsListString ? $this->renderMarkdown($this->contentsListString) : '';
             case 'json':
                 return json_encode($this->contentsListArray);
             case 'array':
@@ -367,13 +365,15 @@ class ParsedownToc extends ParsedownTocParentAlias
     {
         // Use user-defined logic if a callback is provided
         if (is_callable($this->createAnchorIDCallback)) {
-            return call_user_func($this->createAnchorIDCallback, $text, $this->options);
+            $text = (string) call_user_func($this->createAnchorIDCallback, $text, $this->options);
+
+            return $this->finalizeAnchorID($text);
         }
 
         if ($this->options['urlencode']) {
             $text = urlencode($text);
-            // Check AnchorID is unique
-            return $this->uniquifyAnchorID($text);
+
+            return $this->finalizeAnchorID($text);
         }
 
         // Lowercase the string
@@ -398,10 +398,19 @@ class ParsedownToc extends ParsedownTocParentAlias
         // Truncate slug to max. characters
         $text = mb_substr($text, 0, ($this->options['limit'] ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
 
-        // Check AnchorID is unique
-        $text = $this->uniquifyAnchorID($text);
+        return $this->finalizeAnchorID($text);
+    }
 
-        return $text;
+    /**
+     * Finalize an anchor ID by ensuring a usable base and applying uniqueness.
+     */
+    protected function finalizeAnchorID(string $text): string
+    {
+        if ($text === '') {
+            $text = 'section';
+        }
+
+        return $this->uniquifyAnchorID($text);
     }
 
     /**
@@ -570,6 +579,28 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
     }
 
+    /**
+     * Reset per-document parsing state before processing a new markdown document.
+     */
+    protected function resetParserState(): void
+    {
+        $this->anchorDuplicates = [];
+        $this->contentsListArray = [];
+        $this->contentsListString = '';
+        $this->firstHeadLevel = 0;
+    }
+
+    /**
+     * Parse markdown while preserving current parser state.
+     */
+    protected function renderMarkdown(string $text): string
+    {
+        $text = $this->encodeTagToHash($text);
+        $html = parent::text($text);
+
+        return $this->decodeTagFromHash($html);
+    }
+
 
 
     /**
@@ -726,7 +757,8 @@ class ParsedownToc extends ParsedownTocParentAlias
         // Parses the markdown text except the ToC tag. This also searches
         // the list of contents and available to get from "contentsList()"
         // method.
-        $html = $this->body($text);
+        $this->resetParserState();
+        $html = $this->renderMarkdown($text);
 
         $tag_origin  = $this->getTocTag();
 
