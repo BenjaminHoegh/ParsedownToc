@@ -94,6 +94,36 @@ class AnchorIDGenerationTest extends TestCase
     }
 
     /**
+     * Test case for selector-gated IDs and duplicate tracking with ATX headings.
+     */
+    public function testExcludedATXHeadingDoesNotConsumeGeneratedID()
+    {
+        $this->parsedownToc->setOptions(['selectors' => ['h2']]);
+
+        $excludedHtml = $this->parsedownToc->text("# heading");
+        $includedHtml = $this->parsedownToc->text("## heading");
+
+        $this->assertStringContainsString('<h1>heading</h1>', $excludedHtml);
+        $this->assertStringNotContainsString('<h1 id="heading">', $excludedHtml);
+        $this->assertStringContainsString('<h2 id="heading">heading</h2>', $includedHtml);
+    }
+
+    /**
+     * Test case for selector-gated IDs and duplicate tracking with Setext headings.
+     */
+    public function testExcludedSetextHeadingDoesNotConsumeGeneratedID()
+    {
+        $this->parsedownToc->setOptions(['selectors' => ['h2']]);
+
+        $excludedHtml = $this->parsedownToc->text("heading\n===");
+        $includedHtml = $this->parsedownToc->text("heading\n---");
+
+        $this->assertStringContainsString('<h1>heading</h1>', $excludedHtml);
+        $this->assertStringNotContainsString('<h1 id="heading">', $excludedHtml);
+        $this->assertStringContainsString('<h2 id="heading">heading</h2>', $includedHtml);
+    }
+
+    /**
      * Test case for sanitizing anchor IDs.
      */
     public function testAnchorIDSanitizeAnchor()
