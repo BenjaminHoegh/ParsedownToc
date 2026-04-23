@@ -23,6 +23,7 @@
 ## Prerequisites:
 
 - Requires Parsedown 1.7.4 or later.
+- Requires ParsedownExtra 0.8 or later.
 
 ## Installation:
 
