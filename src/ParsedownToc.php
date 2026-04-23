@@ -243,13 +243,12 @@ class ParsedownToc extends ParsedownTocParentAlias
             $level = $Block['element']['name'];
             $id = $Block['element']['attributes']['id'] ?? $this->createAnchorID($text);
 
-            $Block['element']['attributes'] = ['id' => $id];
-
             // Check if heading level is in the selectors
             if (!in_array($level, $this->options['selectors'])) {
                 return $Block;
             }
-
+            
+            $Block['element']['attributes'] = ['id' => $id];
             $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
 
             return $Block;
