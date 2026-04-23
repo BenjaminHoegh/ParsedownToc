@@ -248,7 +248,13 @@ class ParsedownToc extends ParsedownTocParentAlias
             }
 
             $attributes = $Block['element']['attributes'] ?? [];
-            $id = $attributes['id'] ?? $this->createAnchorID($text);
+            $hasCustomId = isset($attributes['id']);
+            $id = $hasCustomId ? $attributes['id'] : $this->createAnchorID($text);
+
+            if ($hasCustomId) {
+                $this->reserveAnchorID($id);
+            }
+
             $attributes['id'] = $id;
             $Block['element']['attributes'] = $attributes;
             $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
@@ -281,7 +287,13 @@ class ParsedownToc extends ParsedownTocParentAlias
             }
 
             $attributes = $Block['element']['attributes'] ?? [];
-            $id = $attributes['id'] ?? $this->createAnchorID($text);
+            $hasCustomId = isset($attributes['id']);
+            $id = $hasCustomId ? $attributes['id'] : $this->createAnchorID($text);
+
+            if ($hasCustomId) {
+                $this->reserveAnchorID($id);
+            }
+
             $attributes['id'] = $id;
             $Block['element']['attributes'] = $attributes;
 
@@ -546,6 +558,16 @@ class ParsedownToc extends ParsedownTocParentAlias
         $count++; // Prepare for the next potential duplicate
 
         return $text;
+    }
+
+    /**
+     * Reserve an anchor ID so later generated IDs do not reuse it.
+     */
+    protected function reserveAnchorID(string $id): void
+    {
+        if (!isset($this->anchorDuplicates[$id])) {
+            $this->anchorDuplicates[$id] = 1;
+        }
     }
 
 
