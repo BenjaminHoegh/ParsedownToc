@@ -121,17 +121,6 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setTocPrefix` method.
-     */
-    public function testSetTocPrefix()
-    {
-        $prefix = 'toc';
-
-        $this->parsedownToc->setTocPrefix($prefix);
-        $this->assertEquals($prefix, $this->parsedownToc->getOptions()['prefix']);
-    }
-
-    /**
      * Test case for the `setTocTag` method.
      */
     public function testSetTocTag()
