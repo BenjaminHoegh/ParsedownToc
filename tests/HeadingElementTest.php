@@ -41,19 +41,7 @@ class HeadingElementTest extends TestCase
             'text' => "=========="
         ];
 
-        $block = [
-            'type' => 'Paragraph',
-            'element' => [
-                'name' => 'p',
-                'text' => 'Alt-H1',
-                'handler' => [
-                    'function' => 'lineElements',
-                    'argument' => 'Alt-H1',
-                    'destination' => 'elements'
-                ]
-            ],
-            'identified' => true
-        ];
+        $block = $this->createSetextHeaderBlock('Alt-H1');
 
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockSetextHeader', [$line, $block]);
         $this->assertSame('h1', $actualBlock['element']['name']);
@@ -87,6 +75,32 @@ class HeadingElementTest extends TestCase
         }
 
         return '';
+    }
+
+    private function createSetextHeaderBlock(string $text): array
+    {
+        $block = [
+            'element' => [
+                'name' => 'p',
+                'text' => $text,
+            ],
+            'identified' => true,
+        ];
+
+        if (version_compare(Parsedown::version, '1.8.0', '>=')) {
+            $block['type'] = 'Paragraph';
+            $block['element']['handler'] = [
+                'function' => 'lineElements',
+                'argument' => $text,
+                'destination' => 'elements',
+            ];
+
+            return $block;
+        }
+
+        $block['element']['handler'] = 'line';
+
+        return $block;
     }
 
     /**
