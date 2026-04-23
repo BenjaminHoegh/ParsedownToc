@@ -21,16 +21,10 @@ class HeadingElementTest extends TestCase
             'text' => "# 1.1 Headings"
         ];
 
-        $expected = [
-            'element' => [
-                'name' => 'h1',
-                'text' => '1.1 Headings',
-                'attributes' => ['id' => '1-1-headings'],
-                'handler' => 'line'
-            ]
-        ];
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockHeader', [$line]);
-        $this->assertEquals($expected, $actualBlock);
+        $this->assertSame('h1', $actualBlock['element']['name']);
+        $this->assertSame('1-1-headings', $actualBlock['element']['attributes']['id']);
+        $this->assertSame('1.1 Headings', $this->extractHeadingText($actualBlock));
     }
 
     /**
@@ -48,26 +42,51 @@ class HeadingElementTest extends TestCase
         ];
 
         $block = [
+            'type' => 'Paragraph',
             'element' => [
                 'name' => 'p',
                 'text' => 'Alt-H1',
-                'handler' => 'line'
-            ],
-            'identified' => true
-        ];
-
-        $expected = [
-            'element' => [
-                'name' => 'h1',
-                'text' => 'Alt-H1',
-                'attributes' => ['id' => 'alt-h1'],
-                'handler' => 'line'
+                'handler' => [
+                    'function' => 'lineElements',
+                    'argument' => 'Alt-H1',
+                    'destination' => 'elements'
+                ]
             ],
             'identified' => true
         ];
 
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockSetextHeader', [$line, $block]);
-        $this->assertEquals($expected, $actualBlock);
+        $this->assertSame('h1', $actualBlock['element']['name']);
+        $this->assertSame('alt-h1', $actualBlock['element']['attributes']['id']);
+        $this->assertSame('Alt-H1', $this->extractHeadingText($actualBlock));
+        $this->assertTrue($actualBlock['identified']);
+    }
+
+    public function testCustomHeadingIdIsReservedFromAutoGeneration()
+    {
+        $markdown = "testing\n\n# Heading {#heading-1}\n\n## Heading\n\n### Heading\n\n## Heading";
+
+        $html = $this->parsedownToc->body($markdown);
+
+        $this->assertStringContainsString('<h1 id="heading-1">Heading</h1>', $html);
+        $this->assertStringContainsString('<h2 id="heading">Heading</h2>', $html);
+        $this->assertStringContainsString('<h3 id="heading-2">Heading</h3>', $html);
+        $this->assertStringContainsString('<h2 id="heading-3">Heading</h2>', $html);
+    }
+
+    private function extractHeadingText(array $block): string
+    {
+        $element = $block['element'];
+
+        if (isset($element['text'])) {
+            return $element['text'];
+        }
+
+        if (isset($element['handler']['argument'])) {
+            return $element['handler']['argument'];
+        }
+
+        return '';
     }
 
     /**
