@@ -241,14 +241,16 @@ class ParsedownToc extends ParsedownTocParentAlias
         if (!empty($Block)) {
             $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
             $level = $Block['element']['name'];
-            $id = $Block['element']['attributes']['id'] ?? $this->createAnchorID($text);
 
             // Check if heading level is in the selectors
             if (!in_array($level, $this->options['selectors'])) {
                 return $Block;
             }
-            
-            $Block['element']['attributes'] = ['id' => $id];
+
+            $attributes = $Block['element']['attributes'] ?? [];
+            $id = $attributes['id'] ?? $this->createAnchorID($text);
+            $attributes['id'] = $id;
+            $Block['element']['attributes'] = $attributes;
             $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
 
             return $Block;
@@ -272,14 +274,16 @@ class ParsedownToc extends ParsedownTocParentAlias
         if (!empty($Block)) {
             $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
             $level = $Block['element']['name'];
-            $id = $Block['element']['attributes']['id'] ?? $this->createAnchorID($text);
-
-            $Block['element']['attributes'] = ['id' => $id];
 
             // Check if heading level is in the selectors
             if (!in_array($level, $this->options['selectors'])) {
                 return $Block;
             }
+
+            $attributes = $Block['element']['attributes'] ?? [];
+            $id = $attributes['id'] ?? $this->createAnchorID($text);
+            $attributes['id'] = $id;
+            $Block['element']['attributes'] = $attributes;
 
             $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
 
