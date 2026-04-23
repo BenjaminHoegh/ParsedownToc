@@ -27,7 +27,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         'limit' => null,
         'lowercase' => true,
         'replacements' => null,
-        'transliterate' => true,
+        'transliterate' => false,
         'urlencode' => false,
         'blacklist' => [],
         'url' => '',
