@@ -61,6 +61,34 @@ class ContentListManagementTest extends TestCase
         $this->parsedownToc->contentsList('invalid');
     }
 
+    public function testTextResetsParserStateBetweenDocuments()
+    {
+        $firstHtml = $this->parsedownToc->text("# Heading");
+        $firstContents = $this->parsedownToc->contentsList('array');
+
+        $secondHtml = $this->parsedownToc->text("# Heading");
+        $secondContents = $this->parsedownToc->contentsList('array');
+
+        $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $firstHtml);
+        $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $secondHtml);
+        $this->assertSame([['text' => 'Heading', 'id' => 'heading', 'level' => 'h1']], $firstContents);
+        $this->assertSame([['text' => 'Heading', 'id' => 'heading', 'level' => 'h1']], $secondContents);
+    }
+
+    public function testBodyResetsParserStateBetweenDocuments()
+    {
+        $firstHtml = $this->parsedownToc->body("# Heading");
+        $firstContents = $this->parsedownToc->contentsList('array');
+
+        $secondHtml = $this->parsedownToc->body("# Heading");
+        $secondContents = $this->parsedownToc->contentsList('array');
+
+        $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $firstHtml);
+        $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $secondHtml);
+        $this->assertSame([['text' => 'Heading', 'id' => 'heading', 'level' => 'h1']], $firstContents);
+        $this->assertSame([['text' => 'Heading', 'id' => 'heading', 'level' => 'h1']], $secondContents);
+    }
+
     protected function tearDown(): void
     {
         unset($this->parsedownToc);
