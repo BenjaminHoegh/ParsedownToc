@@ -15,9 +15,10 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "erusev/parsedown": "^1.7 || ^1.8",
-        "erusev/parsedown-extra": "^0.8 || ^0.9"
+        "php": ">=8.2",
+        "ext-json": "*",
+        "erusev/parsedown": "^1.8",
+        "erusev/parsedown-extra": "^0.9"
     },
     "autoload": {
         "psr-0": {
@@ -32,9 +33,9 @@
     "minimum-stability": "stable",
     "archive": {
         "exclude": [
-            "/test",
-            "/.travis.yml",
-            "/.nova"
+            "/tests",
+            "/phpunit.xml",
+            "/psalm.xml"
         ]
     },
     "require-dev": {
