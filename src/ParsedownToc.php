@@ -37,7 +37,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private array $anchorDuplicates = [];
     private array $contentsListArray = [];
-    private string $contentsListString = '';
+    private string $contentsListHtml = '';
     private $createAnchorIDCallback = null;
     private int $firstHeadLevel = 0;
 
@@ -329,11 +329,14 @@ class ParsedownToc extends ParsedownTocParentAlias
         switch (strtolower($type_return)) {
             case 'string':
             case 'html':
-                return $this->contentsListString ? $this->renderMarkdown($this->contentsListString) : '';
+                return $this->renderContentsListHtml();
+
             case 'json':
                 return json_encode($this->contentsListArray);
+
             case 'array':
                 return $this->contentsListArray;
+
             default:
                 $backtrace = debug_backtrace();
                 $caller = $backtrace[0];
@@ -342,6 +345,81 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
     }
 
+    protected function renderContentsListHtml(): string
+    {
+        if (empty($this->contentsListArray)) {
+            return '';
+        }
+
+        $baseLevel = (int) trim($this->contentsListArray[0]['level'], 'h');
+        $tree = [];
+
+        foreach ($this->contentsListArray as $Content) {
+            $level = (int) trim($Content['level'], 'h');
+            $depth = max(1, $level - $baseLevel + 1);
+
+            $this->insertContentsListNode($tree, $Content, $depth);
+        }
+
+        return $this->renderContentsListNodes($tree);
+    }
+
+    protected function renderContentsListNodes(array $nodes): string
+    {
+        if (empty($nodes)) {
+            return '';
+        }
+
+        $html = '<ul>' . PHP_EOL;
+
+        foreach ($nodes as $node) {
+            $Content = $node['content'];
+
+            $text = $this->fetchText($Content['text']);
+            $id = (string) $Content['id'];
+            $level = (int) trim($Content['level'], 'h');
+
+            $href = $this->options['prefix'] . '#' . $id;
+
+            $html .= sprintf(
+                '<li class="toc-level-%d"><a href="%s">%s</a>',
+                $level,
+                htmlspecialchars($href, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            );
+
+            if (!empty($node['children'])) {
+                $html .= PHP_EOL . $this->renderContentsListNodes($node['children']);
+            }
+
+            $html .= '</li>' . PHP_EOL;
+        }
+
+        $html .= '</ul>' . PHP_EOL;
+
+        return $html;
+    }
+
+    protected function insertContentsListNode(array &$nodes, array $Content, int $depth): void
+    {
+        $node = [
+            'content' => $Content,
+            'children' => [],
+        ];
+
+        if ($depth <= 1 || empty($nodes)) {
+            $nodes[] = $node;
+            return;
+        }
+
+        $lastIndex = array_key_last($nodes);
+
+        $this->insertContentsListNode(
+            $nodes[$lastIndex]['children'],
+            $Content,
+            $depth - 1
+        );
+    }
 
     /**
      * Allows users to define their own logic for createAnchorID.
@@ -640,7 +718,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     {
         $this->anchorDuplicates = [];
         $this->contentsListArray = [];
-        $this->contentsListString = '';
+        $this->contentsListHtml = '';
         $this->firstHeadLevel = 0;
     }
 
@@ -767,7 +845,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         // Stores as an array
         $this->setContentsListAsArray($Content);
         // Stores as string in markdown list format.
-        $this->setContentsListAsString($Content);
+        $this->setContentsListAsHtml($Content);
     }
 
     /**
@@ -787,20 +865,20 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Content  Heading info such as "level","id" and "text".
      * @return void
      */
-    protected function setContentsListAsString(array $Content): void
+    protected function setContentsListAsHtml(array $Content): void
     {
         $text = $this->fetchText($Content['text']);
-        $id = $Content['id'];
+        $id = (string) $Content['id'];
         $level = (int) trim($Content['level'], 'h');
-        $link = "[{$text}]({$this->options['prefix']}#{$id})";
 
-        if ($this->firstHeadLevel === 0) {
-            $this->firstHeadLevel = $level;
-        }
-        $indentLevel = max(1, $level - ($this->firstHeadLevel - 1));
-        $indent = str_repeat('  ', $indentLevel);
+        $href = $this->options['prefix'] . '#' . $id;
 
-        $this->contentsListString .= "{$indent}- {$link}" . PHP_EOL;
+        $this->contentsListHtml .= sprintf(
+            '<li class="toc-level-%d"><a href="%s">%s</a></li>' . PHP_EOL,
+            $level,
+            htmlspecialchars($href, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+        );
     }
 
     /**
