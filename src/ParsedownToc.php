@@ -16,21 +16,21 @@ if (class_exists('ParsedownExtra')) {
 class ParsedownToc extends ParsedownTocParentAlias
 {
     public const VERSION = '2.0.0';
-    public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
-    public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
+    public const VERSION_PARSEDOWN_REQUIRED = '1.8.0';
+    public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.9.0';
     public const MIN_PHP_VERSION = '7.4';
 
     protected array $options = [];
     protected array $defaultOptions = array(
-        'selectors' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        'delimiter' => '-',
-        'limit' => null,
-        'lowercase' => true,
-        'replacements' => null,
-        'transliterate' => false,
-        'urlencode' => false,
-        'blacklist' => [],
-        'url' => '',
+        'heading_levels' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        'slug_delimiter' => '-',
+        'toc_items_limit' => null,
+        'slug_lowercase' => true,
+        'slug_replacements' => null,
+        'slug_transliterate' => false,
+        'slug_urlencode' => false,
+        'reserved_ids' => [],
+        'prefix' => '',
         'toc_tag' => '[toc]',
         'toc_id' => 'toc',
     );
@@ -93,102 +93,102 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * Set the selectors option.
+     * Set the heading_levels option.
      *
-     * @param array $selectors The selectors to set.
+     * @param array $heading_levels The heading levels to set.
      * @return void
      */
-    public function setTocSelectors(array $selectors): void
+    public function setHeadingLevels(array $heading_levels): void
     {
-        $this->options['selectors'] = $selectors;
+        $this->options['heading_levels'] = $heading_levels;
     }
 
     /**
-     * Set the delimiter option.
+     * Set the slug_delimiter option.
      *
-     * @param string $delimiter The delimiter to set.
+     * @param string $slug_delimiter The slug delimiter to set.
      * @return void
      */
-    public function setTocDelimiter(string $delimiter): void
+    public function setSlugDelimiter(string $slug_delimiter): void
     {
-        $this->options['delimiter'] = $delimiter;
+        $this->options['slug_delimiter'] = $slug_delimiter;
     }
 
     /**
-     * Set the limit option.
+     * Set the toc_items_limit option.
      *
-     * @param int|null $limit The limit to set.
+     * @param int|null $toc_items_limit The TOC item limit to set.
      * @return void
      */
-    public function setTocLimit(?int $limit): void
+    public function setTocItemsLimit(?int $toc_items_limit): void
     {
-        $this->options['limit'] = $limit;
+        $this->options['toc_items_limit'] = $toc_items_limit;
     }
 
     /**
-     * Set the lowercase option.
+     * Set the slug_lowercase option.
      *
-     * @param bool $lowercase The lowercase option to set.
+     * @param bool $slug_lowercase The slug lowercase option to set.
      * @return void
      */
-    public function setTocLowercase(bool $lowercase): void
+    public function setSlugLowercase(bool $slug_lowercase): void
     {
-        $this->options['lowercase'] = $lowercase;
+        $this->options['slug_lowercase'] = $slug_lowercase;
     }
 
     /**
-     * Set the replacements option.
+     * Set the slug_replacements option.
      *
-     * @param array|null $replacements The replacements to set.
+     * @param array|null $slug_replacements The slug replacements to set.
      * @return void
      */
-    public function setTocReplacements(?array $replacements): void
+    public function setSlugReplacements(?array $slug_replacements): void
     {
-        $this->options['replacements'] = $replacements;
+        $this->options['slug_replacements'] = $slug_replacements;
     }
 
     /**
-     * Set the transliterate option.
+     * Set the slug_transliterate option.
      *
-     * @param bool $transliterate The transliterate option to set.
+     * @param bool $slug_transliterate The slug transliterate option to set.
      * @return void
      */
-    public function setTocTransliterate(bool $transliterate): void
+    public function setSlugTransliterate(bool $slug_transliterate): void
     {
-        $this->options['transliterate'] = $transliterate;
+        $this->options['slug_transliterate'] = $slug_transliterate;
     }
 
     /**
-     * Set the urlencode option.
+     * Set the slug_urlencode option.
      *
-     * @param bool $urlencode The urlencode option to set.
+     * @param bool $slug_urlencode The slug urlencode option to set.
      * @return void
      */
-    public function setTocUrlencode(bool $urlencode): void
+    public function setSlugUrlencode(bool $slug_urlencode): void
     {
-        $this->options['urlencode'] = $urlencode;
+        $this->options['slug_urlencode'] = $slug_urlencode;
     }
 
     /**
-     * Set the blacklist option.
+     * Set the reserved_ids option.
      *
-     * @param array $blacklist The blacklist to set.
+     * @param array $reserved_ids The reserved ids to set.
      * @return void
      */
-    public function setTocBlacklist(array $blacklist): void
+    public function setReservedIds(array $reserved_ids): void
     {
-        $this->options['blacklist'] = $blacklist;
+        $this->options['reserved_ids'] = $reserved_ids;
     }
 
     /**
-     * Set the url option.
+     * Set the prefix option.
      *
-     * @param string $url The url to set.
+     * @param string $prefix The prefix to set.
      * @return void
      */
-    public function setTocUrl(string $url): void
+    public function setTocPrefix(string $prefix): void
     {
-        $this->options['url'] = $url;
+        $this->options['prefix'] = $prefix;
     }
 
     /**
@@ -243,7 +243,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $level = $Block['element']['name'];
 
             // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'])) {
+            if (!in_array($level, $this->options['heading_levels'])) {
                 return $Block;
             }
 
@@ -282,7 +282,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $level = $Block['element']['name'];
 
             // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'])) {
+            if (!in_array($level, $this->options['heading_levels'])) {
                 return $Block;
             }
 
@@ -370,35 +370,89 @@ class ParsedownToc extends ParsedownTocParentAlias
             return $this->finalizeAnchorID($text);
         }
 
-        if ($this->options['urlencode']) {
+        if ($this->options['slug_urlencode']) {
             $text = urlencode($text);
 
             return $this->finalizeAnchorID($text);
         }
 
         // Lowercase the string
-        $text = $this->options['lowercase'] ? mb_strtolower($text, 'UTF-8') : $text;
+        $text = $this->options['slug_lowercase'] ? mb_strtolower($text, 'UTF-8') : $text;
 
         // Make custom replacements
-        if (!empty($this->options['replacements'])) {
-            $text = preg_replace(array_keys($this->options['replacements']), $this->options['replacements'], $text);
+        if (!empty($this->options['slug_replacements'])) {
+            $text = $this->applyReplacements($text, $this->options['slug_replacements']);
         }
 
         // Remove non UTF-8 characters
         $text = $this->normalizeString($text);
 
         // Transliterate characters to ASCII
-        if ($this->options['transliterate']) {
+        if ($this->options['slug_transliterate']) {
             $text = $this->transliterate($text);
         }
 
         // Sanitize the anchor
         $text = $this->sanitizeAnchor($text);
 
-        // Truncate slug to max. characters
-        $text = mb_substr($text, 0, ($this->options['limit'] ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
-
         return $this->finalizeAnchorID($text);
+    }
+
+    /**
+     * Apply configured replacements using either plain-string or regex patterns.
+     *
+     * @param string $text
+     * @param array $replacements
+     * @return string
+     */
+    protected function applyReplacements(string $text, array $replacements): string
+    {
+        foreach ($replacements as $search => $replacement) {
+            $search = (string) $search;
+            $replacement = (string) $replacement;
+
+            if ($this->isRegexPattern($search)) {
+                $result = preg_replace($search, $replacement, $text);
+
+                if ($result !== null) {
+                    $text = $result;
+                }
+
+                continue;
+            }
+
+            $text = str_replace($search, $replacement, $text);
+        }
+
+        return $text;
+    }
+
+    /**
+     * Determine whether a replacement key looks like a delimited regex pattern.
+     */
+    protected function isRegexPattern(string $pattern): bool
+    {
+        if ($pattern === '') {
+            return false;
+        }
+
+        $delimiter = $pattern[0];
+
+        if (ctype_alnum($delimiter) || $delimiter === '\\') {
+            return false;
+        }
+
+        for ($index = strlen($pattern) - 1; $index > 0; $index--) {
+            if ($pattern[$index] !== $delimiter || $pattern[$index - 1] === '\\') {
+                continue;
+            }
+
+            $modifiers = substr($pattern, $index + 1);
+
+            return preg_match('/^[imsxeADSUXJu]*$/', $modifiers) === 1;
+        }
+
+        return false;
     }
 
     /**
@@ -510,7 +564,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function sanitizeAnchor(string $text): string
     {
-        $delimiter = $this->options['delimiter'];
+        $delimiter = $this->options['slug_delimiter'];
         // Replace non-alphanumeric characters with our delimiter
         $text = preg_replace('/[^\p{L}\p{Nd}]+/u', $delimiter, $text);
         // Remove consecutive delimiters
@@ -528,7 +582,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function uniquifyAnchorID(string $text): string
     {
-        $blacklist = $this->options['blacklist'];
+        $reserved_ids = $this->options['reserved_ids'];
 
         // Initialize the count for this text if not already set
         if (!isset($this->anchorDuplicates[$text])) {
@@ -536,7 +590,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
 
         // If the text is not in the blacklist and is the first time we see it, return it as is
-        if (!in_array($text, $blacklist) && $this->anchorDuplicates[$text] === 0) {
+        if (!in_array($text, $reserved_ids) && $this->anchorDuplicates[$text] === 0) {
             // Increment here to account for the next time we see this text
             $this->anchorDuplicates[$text]++;
             return $text; // Return without adding a count
@@ -555,7 +609,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         while (true) {
             if ($count > 0) { // Only append the count if it's not the first occurrence
                 $text = $originalText . '-' . $count;
-                if (!in_array($text, $blacklist) && !isset($this->anchorDuplicates[$text])) {
+                if (!in_array($text, $reserved_ids) && !isset($this->anchorDuplicates[$text])) {
                     break;
                 }
             }
@@ -706,6 +760,10 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function setContentsList(array $Content): void
     {
+        if ($this->options['toc_items_limit'] !== null && count($this->contentsListArray) >= $this->options['toc_items_limit']) {
+            return;
+        }
+
         // Stores as an array
         $this->setContentsListAsArray($Content);
         // Stores as string in markdown list format.
@@ -734,7 +792,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         $text = $this->fetchText($Content['text']);
         $id = $Content['id'];
         $level = (int) trim($Content['level'], 'h');
-        $link = "[{$text}]({$this->options['url']}#{$id})";
+        $link = "[{$text}]({$this->options['prefix']}#{$id})";
 
         if ($this->firstHeadLevel === 0) {
             $this->firstHeadLevel = $level;
