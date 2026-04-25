@@ -4,6 +4,8 @@ use PHPUnit\Framework\TestCase;
 
 class HeadingElementTest extends TestCase
 {
+    protected $parsedownToc;
+    
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -79,28 +81,19 @@ class HeadingElementTest extends TestCase
 
     private function createSetextHeaderBlock(string $text): array
     {
-        $block = [
+        return [
+            'type' => 'Paragraph',
             'element' => [
                 'name' => 'p',
                 'text' => $text,
+                'handler' => [
+                    'function' => 'lineElements',
+                    'argument' => $text,
+                    'destination' => 'elements',
+                ],
             ],
             'identified' => true,
         ];
-
-        if (version_compare(Parsedown::version, '1.8.0', '>=')) {
-            $block['type'] = 'Paragraph';
-            $block['element']['handler'] = [
-                'function' => 'lineElements',
-                'argument' => $text,
-                'destination' => 'elements',
-            ];
-
-            return $block;
-        }
-
-        $block['element']['handler'] = 'line';
-
-        return $block;
     }
 
     /**

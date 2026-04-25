@@ -28,13 +28,13 @@ class AnchorIDGenerationTest extends TestCase
     public function testAnchorIDDuplicate()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['blacklist' => []]); // Ensure no blacklist interference
+        $this->parsedownToc->setOptions(['reserved_ids' => []]); // Ensure no reserved id interference
 
         $firstCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $secondCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
 
         $this->assertNotEquals($firstCall, $secondCall);
-        $this->assertTrue(strpos($secondCall, $firstCall . '-') !== false);
+        $this->assertTrue(str_contains($secondCall, $firstCall . '-'));
         $this->assertEquals('heading', $firstCall);
         $this->assertEquals('heading-1', $secondCall);
     }
@@ -71,28 +71,37 @@ class AnchorIDGenerationTest extends TestCase
     }
 
     /**
-     * Test case for generating anchor IDs with blacklist.
+    * Test case for generating anchor IDs with reserved ids.
      *
      * This test verifies that the createAnchorID method of the ParsedownToc class
      * generates the correct anchor ID when a blacklist is set and the input text
-     * matches an item in the blacklist.
+     * matches an item in the reserved ids list.
      */
-    public function testAnchorIDBlacklist()
+    public function testAnchorIDReservedIds()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['blacklist' => ['heading']]);
+        $this->parsedownToc->setOptions(['reserved_ids' => ['heading']]);
 
         $result = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $this->assertNotEquals('heading', $result);
         $this->assertEquals('heading-1', $result);
     }
 
-    /**
-     * Test case for anchor ID selectors.
-     */
-    public function testAnchorIDSelectors()
+    public function testAnchorIDReservedIdsAreTypeStrict()
     {
-        $this->parsedownToc->setOptions(['selectors' => ['h1']]);
+        $this->parsedownToc->setReservedIds([123]);
+
+        $result = $this->invokeMethod($this->parsedownToc, 'createAnchorID', ['123']);
+
+        $this->assertEquals('123', $result);
+    }
+
+    /**
+     * Test case for anchor ID heading levels.
+     */
+    public function testAnchorIDHeadingLevels()
+    {
+        $this->parsedownToc->setOptions(['heading_levels' => ['h1']]);
 
         $text = "# heading1";
         $this->parsedownToc->text($text);
@@ -110,7 +119,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testExcludedATXHeadingDoesNotConsumeGeneratedID()
     {
-        $this->parsedownToc->setOptions(['selectors' => ['h2']]);
+        $this->parsedownToc->setOptions(['heading_levels' => ['h2']]);
 
         $excludedHtml = $this->parsedownToc->text("# heading");
         $includedHtml = $this->parsedownToc->text("## heading");
@@ -125,7 +134,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testExcludedSetextHeadingDoesNotConsumeGeneratedID()
     {
-        $this->parsedownToc->setOptions(['selectors' => ['h2']]);
+        $this->parsedownToc->setOptions(['heading_levels' => ['h2']]);
 
         $excludedHtml = $this->parsedownToc->text("heading\n===");
         $includedHtml = $this->parsedownToc->text("heading\n---");
@@ -158,11 +167,56 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDSanitizeAnchorCustomDelimiter()
     {
-        $this->parsedownToc->setOptions(['delimiter' => '&']);
+        $this->parsedownToc->setOptions(['slug_delimiter' => '&']);
 
         $text = "heading with spaces";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
         $this->assertEquals('heading&with&spaces', $result);
+    }
+
+    public function testAnchorIDRespectsLowercaseOption()
+    {
+        $this->parsedownToc->setSlugLowercase(false);
+
+        $html = $this->parsedownToc->text('# Mixed Case');
+
+        $this->assertStringContainsString('<h1 id="Mixed-Case">Mixed Case</h1>', $html);
+    }
+
+    public function testAnchorIDRespectsReplacements()
+    {
+        $this->parsedownToc->setSlugReplacements(['cat' => 'dog']);
+
+        $html = $this->parsedownToc->text('# cat nap');
+
+        $this->assertStringContainsString('<h1 id="dog-nap">cat nap</h1>', $html);
+    }
+
+    public function testAnchorIDRespectsRegexReplacements()
+    {
+        $this->parsedownToc->setSlugReplacements(['/cat/' => 'dog']);
+
+        $html = $this->parsedownToc->text('# cat nap');
+
+        $this->assertStringContainsString('<h1 id="dog-nap">cat nap</h1>', $html);
+    }
+
+    public function testAnchorIDRespectsTransliteration()
+    {
+        $this->parsedownToc->setSlugTransliterate(true);
+
+        $html = $this->parsedownToc->text('# Über');
+
+        $this->assertStringContainsString('<h1 id="uber">Über</h1>', $html);
+    }
+
+    public function testAnchorIDRespectsUrlencodeOption()
+    {
+        $this->parsedownToc->setSlugUrlencode(true);
+
+        $html = $this->parsedownToc->text('# Heading Here');
+
+        $this->assertStringContainsString('<h1 id="Heading+Here">Heading Here</h1>', $html);
     }
 
     public function testAnchorIDFallsBackWhenSanitizedTextIsEmpty()

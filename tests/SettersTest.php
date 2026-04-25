@@ -4,6 +4,8 @@ use PHPUnit\Framework\TestCase;
 
 class SettersTest extends TestCase
 {
+    protected $parsedownToc;
+    
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -24,100 +26,111 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setTocSelectors` method.
+     * Test case for the `setHeadingLevels` method.
      */
-    public function testSetTocSelectors() 
+    public function testSetHeadingLevels() 
     {
-        $selectors = [
+        $headingLevels = [
             'h1' => 'h1',
             'h2' => 'h2',
             'h3' => 'h3',
             'h4' => 'h4',
         ];
 
-        $this->parsedownToc->setTocSelectors($selectors);
-        $this->assertEquals($selectors, $this->parsedownToc->getOptions()['selectors']);
+        $this->parsedownToc->setHeadingLevels($headingLevels);
+        $this->assertEquals($headingLevels, $this->parsedownToc->getOptions()['heading_levels']);
     }
 
     /**
-     * Test case for the `setTocDelimiter` method.
+     * Test case for the `setSlugDelimiter` method.
      */
-    public function testSetTocDelimiter()
+    public function testSetSlugDelimiter()
     {
         $delimiter = '&';
 
-        $this->parsedownToc->setTocDelimiter($delimiter);
-        $this->assertEquals($delimiter, $this->parsedownToc->getOptions()['delimiter']);
+        $this->parsedownToc->setSlugDelimiter($delimiter);
+        $this->assertEquals($delimiter, $this->parsedownToc->getOptions()['slug_delimiter']);
     }
 
     /**
-     * Test case for the `setTocLimit` method.
+     * Test case for the `setTocItemsLimit` method.
      */
-    public function testSetTocLimit()
+    public function testSetTocItemsLimit()
     {
         $limit = 3;
 
-        $this->parsedownToc->setTocLimit($limit);
-        $this->assertEquals($limit, $this->parsedownToc->getOptions()['limit']);
+        $this->parsedownToc->setTocItemsLimit($limit);
+        $this->assertEquals($limit, $this->parsedownToc->getOptions()['toc_items_limit']);
     }
 
     /**
-     * Test case for the `setTocLowercase` method.
+     * Test case for the `setSlugLowercase` method.
      */
-    public function testSetTocLowercase()
+    public function testSetSlugLowercase()
     {
         $lowercase = false;
 
-        $this->parsedownToc->setTocLowercase($lowercase);
-        $this->assertEquals($lowercase, $this->parsedownToc->getOptions()['lowercase']);
+        $this->parsedownToc->setSlugLowercase($lowercase);
+        $this->assertEquals($lowercase, $this->parsedownToc->getOptions()['slug_lowercase']);
     }
 
     /**
-     * Test case for the `setTocReplacements` method.
+     * Test case for the `setSlugReplacements` method.
      */
-    public function testSetTocReplacements()
+    public function testSetSlugReplacements()
     {
         $replacements = [
             'BadKitty' => '-',
         ];
 
-        $this->parsedownToc->setTocReplacements($replacements);
-        $this->assertEquals($replacements, $this->parsedownToc->getOptions()['replacements']);
+        $this->parsedownToc->setSlugReplacements($replacements);
+        $this->assertEquals($replacements, $this->parsedownToc->getOptions()['slug_replacements']);
     }
 
     /**
-     * Test case for the `setTocTransliterate` method.
+     * Test case for the `setSlugTransliterate` method.
      */
-    public function testSetTocTransliterate()
+    public function testSetSlugTransliterate()
     {
         $transliterate = false;
 
-        $this->parsedownToc->setTocTransliterate($transliterate);
-        $this->assertEquals($transliterate, $this->parsedownToc->getOptions()['transliterate']);
+        $this->parsedownToc->setSlugTransliterate($transliterate);
+        $this->assertEquals($transliterate, $this->parsedownToc->getOptions()['slug_transliterate']);
     }
 
     /**
-     * Test case for the `setTocUrlencode` method.
+     * Test case for the `setSlugUrlencode` method.
      */
-    public function testSetTocUrlencode()
+    public function testSetSlugUrlencode()
     {
         $urlencode = false;
 
-        $this->parsedownToc->setTocUrlencode($urlencode);
-        $this->assertEquals($urlencode, $this->parsedownToc->getOptions()['urlencode']);
+        $this->parsedownToc->setSlugUrlencode($urlencode);
+        $this->assertEquals($urlencode, $this->parsedownToc->getOptions()['slug_urlencode']);
     }
 
     /**
-     * Test case for the `setTocBlacklist` method.
+     * Test case for the `setReservedIds` method.
      */
-    public function testSetTocBlacklist()
+    public function testSetReservedIds()
     {
-        $blacklist = [
+        $reservedIds = [
             'myBlacklistedHeaderId',
         ];
 
-        $this->parsedownToc->setTocBlacklist($blacklist);
-        $this->assertEquals($blacklist, $this->parsedownToc->getOptions()['blacklist']);
+        $this->parsedownToc->setReservedIds($reservedIds);
+        $this->assertEquals($reservedIds, $this->parsedownToc->getOptions()['reserved_ids']);
+    }
+
+    /**
+     * Test case for the `setTocPrefix` method.
+     */
+    public function testSetTocPrefix()
+    {
+        $prefix = '/docs/page';
+
+        $this->parsedownToc->setTocPrefix($prefix);
+        $this->assertEquals($prefix, $this->parsedownToc->getOptions()['prefix']);
     }
 
     /**

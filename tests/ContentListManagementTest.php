@@ -34,6 +34,23 @@ class ContentListManagementTest extends TestCase
         $this->assertIsString($result);
         $this->assertJson($result);
     }
+
+    public function testContentsListJsonThrowsOnEncodingFailure()
+    {
+        $reflection = new ReflectionClass($this->parsedownToc);
+        $property = $reflection->getProperty('contentsListArray');
+        $property->setAccessible(true);
+        $property->setValue($this->parsedownToc, [[
+            'text' => "\xB1\x31",
+            'id' => 'broken',
+            'level' => 'h1',
+        ]]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to encode table of contents as JSON.');
+
+        $this->parsedownToc->contentsList('json');
+    }
     
     public function testContentsListArray()
     {
@@ -51,6 +68,29 @@ class ContentListManagementTest extends TestCase
         $result = $this->parsedownToc->contentsList();
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
+    }
+
+    public function testContentsListRespectsUrlPrefix()
+    {
+        $this->parsedownToc->setTocPrefix('/docs/page');
+
+        $this->parsedownToc->text("# Heading 1");
+        $result = $this->parsedownToc->contentsList();
+
+        $this->assertStringContainsString('<a href="/docs/page#heading-1">Heading 1</a>', $result);
+    }
+
+    public function testContentsListRespectsLimit()
+    {
+        $this->parsedownToc->setTocItemsLimit(1);
+
+        $html = $this->parsedownToc->text("# First\n\n# Second\n\n[toc]");
+        $result = $this->parsedownToc->contentsList();
+
+        $this->assertStringContainsString('<h1 id="first">First</h1>', $html);
+        $this->assertStringContainsString('<h1 id="second">Second</h1>', $html);
+        $this->assertStringContainsString('<a href="#first">First</a>', $result);
+        $this->assertStringNotContainsString('<a href="#second">Second</a>', $result);
     }
 
     public function testContentsListInvalidType()
