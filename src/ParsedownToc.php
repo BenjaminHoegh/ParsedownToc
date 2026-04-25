@@ -15,7 +15,7 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.3';
+    public const VERSION = '1.5.5';
     public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
     public const MIN_PHP_VERSION = '7.4';
