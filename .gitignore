@@ -3,6 +3,7 @@ test/
 composer.lock
 .phpunit.result.cache
 .nova/
+.idea/
 index.php
 test.md
 
