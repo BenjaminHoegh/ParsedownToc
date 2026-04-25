@@ -37,9 +37,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private array $anchorDuplicates = [];
     private array $contentsListArray = [];
-    private string $contentsListString = '';
     private $createAnchorIDCallback = null;
-    private int $firstHeadLevel = 0;
 
 
     public function __construct()
@@ -243,7 +241,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $level = $Block['element']['name'];
 
             // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'])) {
+            if (!in_array($level, $this->options['selectors'], true)) {
                 return $Block;
             }
 
@@ -276,7 +274,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $level = $Block['element']['name'];
 
             // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'])) {
+            if (!in_array($level, $this->options['selectors'], true)) {
                 return $Block;
             }
 
@@ -319,11 +317,18 @@ class ParsedownToc extends ParsedownTocParentAlias
         switch (strtolower($type_return)) {
             case 'string':
             case 'html':
-                return $this->contentsListString ? $this->body($this->contentsListString) : '';
+                return $this->renderContentsListHtml();
+
             case 'json':
-                return json_encode($this->contentsListArray);
+                try {
+                    return json_encode($this->contentsListArray, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $exception) {
+                    throw new RuntimeException('Failed to encode table of contents as JSON.', 0, $exception);
+                }
+
             case 'array':
                 return $this->contentsListArray;
+
             default:
                 $backtrace = debug_backtrace();
                 $caller = $backtrace[0];
@@ -332,6 +337,92 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
     }
 
+    protected function renderContentsListHtml(): string
+    {
+        if (empty($this->contentsListArray)) {
+            return '';
+        }
+
+        $tree = [];
+        $stack = [];
+
+        foreach ($this->contentsListArray as $Content) {
+            $level = (int) trim($Content['level'], 'h');
+
+            $node = [
+                'content' => $Content,
+                'children' => [],
+            ];
+
+            while (!empty($stack) && $stack[array_key_last($stack)]['level'] >= $level) {
+                array_pop($stack);
+            }
+
+            if (empty($stack)) {
+                $tree[] = $node;
+
+                $lastIndex = array_key_last($tree);
+                $stack[] = [
+                    'level' => $level,
+                    'node' => &$tree[$lastIndex],
+                ];
+
+                continue;
+            }
+
+            $parentIndex = array_key_last($stack);
+            $parent = &$stack[$parentIndex]['node'];
+
+            $parent['children'][] = $node;
+
+            $childIndex = array_key_last($parent['children']);
+            $stack[] = [
+                'level' => $level,
+                'node' => &$parent['children'][$childIndex],
+            ];
+
+            unset($parent);
+        }
+
+        return $this->renderContentsListNodes($tree);
+    }
+
+
+    protected function renderContentsListNodes(array $nodes): string
+    {
+        if (empty($nodes)) {
+            return '';
+        }
+
+        $html = '<ul>' . PHP_EOL;
+
+        foreach ($nodes as $node) {
+            $Content = $node['content'];
+
+            $text = $this->fetchText($Content['text']);
+            $id = (string) $Content['id'];
+            $level = (int) trim($Content['level'], 'h');
+
+            $href = $this->options['url'] . '#' . $id;
+
+            $html .= sprintf(
+                '<li class="toc-level-%d"><a href="%s">%s</a>',
+                $level,
+                htmlspecialchars($href, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            );
+
+            if (!empty($node['children'])) {
+                $html .= PHP_EOL . $this->renderContentsListNodes($node['children']);
+            }
+
+            $html .= '</li>' . PHP_EOL;
+        }
+
+        $html .= '</ul>' . PHP_EOL;
+
+        return $html;
+    }
 
     /**
      * Allows users to define their own logic for createAnchorID.
@@ -515,10 +606,10 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
 
         // If the text is not in the blacklist and is the first time we see it, return it as is
-        if (!in_array($text, $blacklist) && $this->anchorDuplicates[$text] === 0) {
+        if (!in_array($text, $blacklist, true) && $this->anchorDuplicates[$text] === 0) {
             // Increment here to account for the next time we see this text
             $this->anchorDuplicates[$text]++;
-            return $text; // Return without adding a count
+            return $text;
         }
 
         // For subsequent duplicates, start appending a number starting from 1
@@ -532,18 +623,20 @@ class ParsedownToc extends ParsedownTocParentAlias
 
         // Generate a unique anchor ID by appending a count to the original text
         while (true) {
-            if ($count > 0) { // Only append the count if it's not the first occurrence
+            if ($count > 0) {
                 $text = $originalText . '-' . $count;
-                if (!in_array($text, $blacklist) && !isset($this->anchorDuplicates[$text])) {
+
+                if (!in_array($text, $blacklist, true) && !isset($this->anchorDuplicates[$text])) {
                     break;
                 }
             }
+
             $count++;
         }
 
         // Increment the count for the next duplicate
-        $this->anchorDuplicates[$text] = 1; // Initialize the duplicate counter for the new unique text
-        $count++; // Prepare for the next potential duplicate
+        $this->anchorDuplicates[$text] = 1;
+        $count++;
 
         return $text;
     }
@@ -653,10 +746,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function setContentsList(array $Content): void
     {
-        // Stores as an array
         $this->setContentsListAsArray($Content);
-        // Stores as string in markdown list format.
-        $this->setContentsListAsString($Content);
     }
 
     /**
@@ -668,28 +758,6 @@ class ParsedownToc extends ParsedownTocParentAlias
     protected function setContentsListAsArray(array $Content): void
     {
         $this->contentsListArray[] = $Content;
-    }
-
-    /**
-     * Sets/stores the heading block info as a list in markdown format.
-     *
-     * @param  array $Content  Heading info such as "level","id" and "text".
-     * @return void
-     */
-    protected function setContentsListAsString(array $Content): void
-    {
-        $text = $this->fetchText($Content['text']);
-        $id = $Content['id'];
-        $level = (int) trim($Content['level'], 'h');
-        $link = "[{$text}]({$this->options['url']}#{$id})";
-
-        if ($this->firstHeadLevel === 0) {
-            $this->firstHeadLevel = $level;
-        }
-        $indentLevel = max(1, $level - ($this->firstHeadLevel - 1));
-        $indent = str_repeat('  ', $indentLevel);
-
-        $this->contentsListString .= "{$indent}- {$link}" . PHP_EOL;
     }
 
     /**
@@ -706,15 +774,20 @@ class ParsedownToc extends ParsedownTocParentAlias
         // method.
         $html = $this->body($text);
 
-        $tag_origin  = $this->getTocTag();
+        $tag_origin = $this->getTocTag();
 
         if (strpos($text, $tag_origin) === false) {
             return $html;
         }
 
         $data = $this->contentsList();
-        $toc_id   = $this->getTocIdAttribute();
-        $needle  = '<p>' . $tag_origin . '</p>';
+        $toc_id = htmlspecialchars(
+            (string) $this->getTocIdAttribute(),
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+
+        $needle = '<p>' . $tag_origin . '</p>';
         $replace = "<div id=\"{$toc_id}\">{$data}</div>";
 
         return str_replace($needle, $replace, $html);
