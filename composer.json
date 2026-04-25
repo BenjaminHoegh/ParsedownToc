@@ -39,7 +39,8 @@
         ]
     },
     "require-dev": {
-        "phpunit/phpunit": "9.6.33",
-        "vimeo/psalm": ">=5.21.1"
+        "phpunit/phpunit": "^11.5",
+        "vimeo/psalm": ">=6.16.1",
+        "friendsofphp/php-cs-fixer": "^3.95"
     }
 }
