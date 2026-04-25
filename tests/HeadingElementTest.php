@@ -4,6 +4,8 @@ use PHPUnit\Framework\TestCase;
 
 class HeadingElementTest extends TestCase
 {
+    protected $parsedownToc;
+
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
