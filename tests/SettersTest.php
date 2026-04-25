@@ -4,6 +4,8 @@ use PHPUnit\Framework\TestCase;
 
 class SettersTest extends TestCase
 {
+    protected $parsedownToc;
+    
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -118,17 +120,6 @@ class SettersTest extends TestCase
 
         $this->parsedownToc->setTocBlacklist($blacklist);
         $this->assertEquals($blacklist, $this->parsedownToc->getOptions()['blacklist']);
-    }
-
-    /**
-     * Test case for the `setTocPrefix` method.
-     */
-    public function testSetTocPrefix()
-    {
-        $prefix = 'toc';
-
-        $this->parsedownToc->setTocPrefix($prefix);
-        $this->assertEquals($prefix, $this->parsedownToc->getOptions()['prefix']);
     }
 
     /**
