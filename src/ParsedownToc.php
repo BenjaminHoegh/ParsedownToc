@@ -245,27 +245,6 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * Backwards-compatible alias for older integrations.
-     *
-     * @deprecated 2.0.0 Use setAnchorIdGenerator() instead.
-     *
-     * @param callable(string, array<string, mixed>): string $callback
-     */
-    public function setCreateAnchorIDCallback(callable $callback): void
-    {
-        @trigger_error(
-            sprintf(
-                '%s::setCreateAnchorIDCallback() is deprecated since parsedown-toc 2.0.0. Use %s::setAnchorIdGenerator() instead.',
-                self::class,
-                self::class
-            ),
-            E_USER_DEPRECATED
-        );
-
-        $this->setAnchorIdGenerator($callback);
-    }
-
-    /**
      * Parsedown override.
      *
      * Parameter is intentionally untyped to remain compatible with Parsedown.

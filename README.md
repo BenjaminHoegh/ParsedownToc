@@ -246,7 +246,6 @@ $parser->setReplacements([
 | `setTocTag(string $tag)` | Set the Markdown marker to replace with the ToC |
 | `setTocId(string $id)` | Set the `id` attribute of the ToC wrapper element |
 | `setAnchorIdGenerator(callable $generator)` | Provide a custom anchor ID generation callable |
-| `setCreateAnchorIDCallback(callable $cb)` | **Deprecated since 2.0.** Use `setAnchorIdGenerator()` instead |
 
 ---
 
