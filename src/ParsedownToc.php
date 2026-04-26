@@ -27,7 +27,6 @@ class ParsedownToc extends ParsedownTocParentAlias
         'slug_lowercase' => true,
         'slug_replacements' => null,
         'slug_transliterate' => false,
-        'slug_transliterator' => 'Any-Latin; Latin-ASCII;',
         'slug_urlencode' => false,
         'reserved_ids' => [],
         'prefix' => '',
@@ -49,7 +48,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     /**
      * Custom anchor ID generator provided by package users.
      *
-     * @var callable(string, array<string, mixed>): string|null
+     * @var ?callable(string, array<string, mixed>): string
      */
     private $anchorIdGenerator = null;
 
@@ -74,7 +73,6 @@ class ParsedownToc extends ParsedownTocParentAlias
                 'slug_lowercase' => $this->setSlugLowercase($this->assertBool($value, $name)),
                 'slug_replacements' => $this->setSlugReplacements($this->assertNullableStringMap($value, $name)),
                 'slug_transliterate' => $this->setSlugTransliterate($this->assertBool($value, $name)),
-                'slug_transliterator' => $this->setSlugTransliterator($this->assertString($value, $name)),
                 'slug_urlencode' => $this->setSlugUrlencode($this->assertBool($value, $name)),
                 'reserved_ids' => $this->setReservedIds($this->assertStringList($value, $name)),
                 'prefix' => $this->setTocPrefix($this->assertString($value, $name)),
@@ -135,15 +133,6 @@ class ParsedownToc extends ParsedownTocParentAlias
         $this->options['slug_transliterate'] = $slugTransliterate;
     }
 
-    public function setSlugTransliterator(string $slugTransliterator): void
-    {
-        if ($slugTransliterator === '') {
-            throw new \InvalidArgumentException('Slug transliterator cannot be empty.');
-        }
-
-        $this->options['slug_transliterator'] = $slugTransliterator;
-    }
-
     public function setSlugUrlencode(bool $slugUrlencode): void
     {
         $this->options['slug_urlencode'] = $slugUrlencode;
@@ -194,6 +183,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * Parameter is intentionally untyped to remain compatible with Parsedown.
      */
     /** @psalm-suppress MissingParamType */
+    #[\Override]
     protected function blockHeader($Line): ?array
     {
         $block = parent::blockHeader($Line);
@@ -206,7 +196,9 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * Parameter $Line is intentionally untyped to remain compatible with Parsedown.
      */
+
     /** @psalm-suppress MissingParamType */
+    #[\Override]
     protected function blockSetextHeader($Line, ?array $Block = null): ?array
     {
         $block = parent::blockSetextHeader($Line, $Block);
@@ -222,7 +214,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @return string|array<int, TocItem>
+     * @return string|array<int, array{id: string, text: string, level: int}>
      */
     public function contentsList(string $returnType = 'html'): string|array
     {
@@ -239,8 +231,10 @@ class ParsedownToc extends ParsedownTocParentAlias
     /**
      * Set custom anchor ID generation logic.
      *
-     * The generator receives the heading text and current options. ParsedownToc
-     * still applies uniqueness afterwards.
+     * The generator receives the heading text and current options and must return
+     * the desired anchor ID string. The developer is fully responsible for slug
+     * formatting, prefix, casing, and sanitization. ParsedownToc only guarantees
+     * that the returned value will be made unique across the document.
      *
      * @param callable(string, array<string, mixed>): string $anchorIdGenerator
      */
@@ -276,6 +270,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * Parameter is intentionally untyped to remain compatible with Parsedown.
      */
     /** @psalm-suppress MissingParamType */
+    #[\Override]
     public function text($text): string
     {
         if (!is_string($text)) {
@@ -410,7 +405,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @param array<int, TocNode> $nodes
+     * @param array<int, array{content: array{id: string, text: string, level: int}, children: list}> $nodes
      */
     protected function renderContentsListNodes(array $nodes): string
     {
@@ -425,12 +420,10 @@ class ParsedownToc extends ParsedownTocParentAlias
 
             $text = $this->fetchText($content['text']);
             $id = $content['id'];
-            $level = (int) trim($content['level'], 'h');
-            $href = $this->options['prefix'] . '#' . $id;
+            $href = '#' . $id;
 
             $html .= sprintf(
-                '<li class="toc-level-%d"><a href="%s">%s</a>',
-                $level,
+                '<li><a href="%s">%s</a>',
                 htmlspecialchars($href, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
                 htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             );
@@ -448,9 +441,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     protected function createAnchorID(string $text): string
     {
         if ($this->anchorIdGenerator !== null) {
-            $text = (string) call_user_func($this->anchorIdGenerator, $text, $this->options);
-
-            return $this->finalizeAnchorID($text);
+            return (string) call_user_func($this->anchorIdGenerator, $text, $this->options);
         }
 
         $text = $this->normalizeString($text);
@@ -464,7 +455,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
 
         if ($this->options['slug_transliterate'] === true) {
-            $text = $this->transliterate($text);
+            $text = $this->transliterateWithCharacterMap($text);
 
             if ($this->options['slug_lowercase'] === true) {
                 $text = strtolower($text);
@@ -476,6 +467,8 @@ class ParsedownToc extends ParsedownTocParentAlias
         if ($this->options['slug_urlencode'] === true) {
             $text = rawurlencode($text);
         }
+
+        $text = $this->applyAnchorPrefix($text);
 
         return $this->finalizeAnchorID($text);
     }
@@ -556,23 +549,6 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
 
         return mb_scrub($text, 'UTF-8');
-    }
-
-    protected function transliterate(string $text): string
-    {
-        if (class_exists('\Transliterator')) {
-            $transliterator = \Transliterator::create((string) $this->options['slug_transliterator']);
-
-            if ($transliterator !== null) {
-                $transliterated = $transliterator->transliterate($text);
-
-                if (is_string($transliterated) && $transliterated !== '') {
-                    return $transliterated;
-                }
-            }
-        }
-
-        return $this->transliterateWithCharacterMap($text);
     }
 
     protected function transliterateWithCharacterMap(string $text): string
@@ -659,6 +635,17 @@ class ParsedownToc extends ParsedownTocParentAlias
         $text = $this->safePregReplace('/(' . preg_quote($delimiter, '/') . '){2,}/', '$1', $text);
 
         return trim($text, $delimiter);
+    }
+
+    protected function applyAnchorPrefix(string $text): string
+    {
+        $prefix = (string) $this->options['prefix'];
+
+        if ($prefix === '') {
+            return $text;
+        }
+
+        return $prefix . $text;
     }
 
     protected function uniquifyAnchorID(string $text): string
@@ -751,7 +738,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @param TocItem $content
+     * @param array{id: string, text: string, level: int} $content
      */
     protected function setContentsList(array $content): void
     {
