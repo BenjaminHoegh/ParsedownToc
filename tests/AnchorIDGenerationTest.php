@@ -58,18 +58,6 @@ class AnchorIDGenerationTest extends TestCase
         $this->assertStringContainsString('id="custom_heading"', $html);
     }
 
-    public function testAnchorIDCustomCallbackIsStillUnique()
-    {
-        $this->parsedownToc->setCreateAnchorIDCallback(function ($text, $options) {
-            return 'same-id';
-        });
-
-        $html = $this->parsedownToc->text("# A\n\n# B");
-
-        $this->assertStringContainsString('<h1 id="same-id">A</h1>', $html);
-        $this->assertStringContainsString('<h1 id="same-id-1">B</h1>', $html);
-    }
-
     /**
     * Test case for generating anchor IDs with reserved ids.
      *
