@@ -20,7 +20,7 @@ class HeadingElementTest extends TestCase
         $line = [
             'body' => "# 1.1 Headings",
             'indent' => 0,
-            'text' => "# 1.1 Headings"
+            'text' => "# 1.1 Headings",
         ];
 
         $expected = [
@@ -28,8 +28,8 @@ class HeadingElementTest extends TestCase
                 'name' => 'h1',
                 'text' => '1.1 Headings',
                 'attributes' => ['id' => '1-1-headings'],
-                'handler' => 'line'
-            ]
+                'handler' => 'line',
+            ],
         ];
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockHeader', [$line]);
         $this->assertEquals($expected, $actualBlock);
@@ -46,16 +46,16 @@ class HeadingElementTest extends TestCase
         $line = [
             'body' => "==========",
             'indent' => 0,
-            'text' => "=========="
+            'text' => "==========",
         ];
 
         $block = [
             'element' => [
                 'name' => 'p',
                 'text' => 'Alt-H1',
-                'handler' => 'line'
+                'handler' => 'line',
             ],
-            'identified' => true
+            'identified' => true,
         ];
 
         $expected = [
@@ -63,9 +63,9 @@ class HeadingElementTest extends TestCase
                 'name' => 'h1',
                 'text' => 'Alt-H1',
                 'attributes' => ['id' => 'alt-h1'],
-                'handler' => 'line'
+                'handler' => 'line',
             ],
-            'identified' => true
+            'identified' => true,
         ];
 
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockSetextHeader', [$line, $block]);

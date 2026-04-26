@@ -1,4 +1,5 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
 
 class AnchorIDGenerationTest extends TestCase
@@ -47,7 +48,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDCustomCallback()
     {
-        $customFunction = function($text, $options) {
+        $customFunction = function ($text, $options) {
             return mb_strtolower(str_replace(' ', '_', $text));
         };
         $this->parsedownToc->setCreateAnchorIDCallback($customFunction);
