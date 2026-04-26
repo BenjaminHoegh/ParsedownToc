@@ -183,6 +183,15 @@ class AnchorIDGenerationTest extends TestCase
         $this->assertStringContainsString('<h1 id="Mixed-Case">Mixed Case</h1>', $html);
     }
 
+    public function testAnchorIDRespectsPrefixOption()
+    {
+        $this->parsedownToc->setTocPrefix('md-');
+
+        $html = $this->parsedownToc->text('# Heading');
+
+        $this->assertStringContainsString('<h1 id="md-heading">Heading</h1>', $html);
+    }
+
     public function testAnchorIDRespectsReplacements()
     {
         $this->parsedownToc->setSlugReplacements(['cat' => 'dog']);
@@ -216,7 +225,7 @@ class AnchorIDGenerationTest extends TestCase
 
         $html = $this->parsedownToc->text('# Heading Here');
 
-        $this->assertStringContainsString('<h1 id="Heading+Here">Heading Here</h1>', $html);
+        $this->assertStringContainsString('<h1 id="heading-here">Heading Here</h1>', $html);
     }
 
     public function testAnchorIDFallsBackWhenSanitizedTextIsEmpty()

@@ -54,6 +54,10 @@ class HeadingElementTest extends TestCase
 
     public function testCustomHeadingIdIsReservedFromAutoGeneration()
     {
+        if (!class_exists('ParsedownExtra')) {
+            $this->markTestSkipped('Requires ParsedownExtra for custom heading id syntax ({#id}).');
+        }
+
         $markdown = "testing\n\n# Heading {#heading-1}\n\n## Heading\n\n### Heading\n\n## Heading";
 
         $html = $this->parsedownToc->body($markdown);
@@ -62,6 +66,17 @@ class HeadingElementTest extends TestCase
         $this->assertStringContainsString('<h2 id="heading">Heading</h2>', $html);
         $this->assertStringContainsString('<h3 id="heading-2">Heading</h3>', $html);
         $this->assertStringContainsString('<h2 id="heading-3">Heading</h2>', $html);
+    }
+
+    public function testCustomHeadingIdSyntaxIsLiteralWithoutParsedownExtra()
+    {
+        if (class_exists('ParsedownExtra')) {
+            $this->markTestSkipped('Applies only when ParsedownExtra is not installed.');
+        }
+
+        $html = $this->parsedownToc->body('# Heading {#heading-1}');
+
+        $this->assertStringContainsString('<h1 id="heading-heading-1">Heading {#heading-1}</h1>', $html);
     }
 
     private function extractHeadingText(array $block): string

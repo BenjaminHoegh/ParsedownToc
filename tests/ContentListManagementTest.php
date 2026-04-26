@@ -70,14 +70,15 @@ class ContentListManagementTest extends TestCase
         $this->assertNotEmpty($result);
     }
 
-    public function testContentsListRespectsUrlPrefix()
+    public function testContentsListRespectsHeadingIdPrefix()
     {
-        $this->parsedownToc->setTocPrefix('/docs/page');
+        $this->parsedownToc->setTocPrefix('md-');
 
-        $this->parsedownToc->text("# Heading 1");
+        $html = $this->parsedownToc->text("# Heading 1");
         $result = $this->parsedownToc->contentsList();
 
-        $this->assertStringContainsString('<a href="/docs/page#heading-1">Heading 1</a>', $result);
+        $this->assertStringContainsString('<h1 id="md-heading-1">Heading 1</h1>', $html);
+        $this->assertStringContainsString('<a href="#md-heading-1">Heading 1</a>', $result);
     }
 
     public function testContentsListRespectsLimit()
