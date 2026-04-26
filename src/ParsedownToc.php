@@ -12,6 +12,7 @@ if (!class_exists('ParsedownTocParentAlias', false)) {
     }
 }
 
+/** @psalm-suppress UndefinedClass */
 class ParsedownToc extends ParsedownTocParentAlias
 {
     public const VERSION = '2.0.0';
