@@ -7,140 +7,59 @@
 # ParsedownToc
 
 ![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
-![Packagist Downloads](https://img.shields.io/packagist/dt/benjaminhoegh/parsedown-toc)
 ![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 
-A table-of-contents extension for [Parsedown](https://github.com/erusev/parsedown) and [ParsedownExtra](https://github.com/erusev/parsedown-extra). ParsedownToc automatically generates heading anchor IDs, collects headings during parsing, and can either replace a `[toc]` marker inline or expose the ToC separately for placement anywhere in your layout.
+**ParsedownToc** is an extension for Parsedown and ParsedownExtra that introduces advanced features for developers working with Markdown. It is based on [@KEINOS toc extention](https://github.com/KEINOS/parsedown-extension_table-of-contents)
 
----
+> [!NOTE]
+> Does not yet include the latest changes in ParsedownExtended v1.2.0
 
-## Table of Contents
+## Features:
 
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
+- **Speed:** Super-fast processing.
+- **Configurability:** Easily customizable for different use-cases.
+- **Custom Header IDs:** Full support for custom header ids.
 
----
+## Prerequisites:
 
-## Features
+- Requires Parsedown 1.7.4 or later.
 
-- Replaces a `[toc]` marker in Markdown with a generated, nested HTML list of headings
-- Supports separate rendering of body and ToC for sidebar or multi-column layouts
-- Automatically generates unique, collision-free anchor IDs for every heading
-- Respects explicit heading IDs set in Markdown (e.g. `## My Heading {#custom-id}` with ParsedownExtra)
-- Configurable slug generation: delimiter, case, character replacements, transliteration, URL encoding, and prefix
-- Accepts a fully custom anchor ID generator callable
-- Returns the ToC as HTML, JSON, or a PHP array
-- Compatible with Parsedown 1.8+ and ParsedownExtra 0.9+
+## Installation:
 
----
+Ensure you have Composer installed on your system.
 
-## Requirements
+1. Install the ParsedownToc package using Composer:
 
-| Requirement | Version |
-|---|---|
-| PHP | 8.2 or later |
-| `ext-mbstring` | any |
-| `ext-json` | any |
-| Parsedown | 1.8 or later |
-| ParsedownExtra *(optional)* | 0.9 or later |
+   ```bash
+   composer require benjaminhoegh/ParsedownToc
+   ```
 
----
+2. Alternatively, you can download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest) and include `Parsedown.php` in your project.
 
-## Installation
+## Usage:
 
-### Via Composer (recommended)
-
-```bash
-composer require benjaminhoegh/parsedown-toc
-```
-
-### Manual
-
-Download the [latest release](https://github.com/BenjaminHoegh/ParsedownToc/releases/latest) and require the files directly:
-
-```php
-require 'Parsedown.php';
-// require 'ParsedownExtra.php'; // optional
-require 'src/ParsedownToc.php';
-```
-
----
-
-## Usage
-
-### Inline ToC replacement
-
-Place `[toc]` anywhere in your Markdown. `text()` will replace it with the rendered table of contents wrapped in a `<div id="toc">`.
+### Basic example:
 
 ```php
 <?php
-require 'vendor/autoload.php';
+require 'vendor/autoload.php';  // autoload
 
-$markdown = <<<MD
-[toc]
+$content = file_get_contents('sample.md');  // Sample Markdown with '[toc]' tag
+$ParsedownToc = new ParsedownToc();
 
-## Introduction
-
-### Installation
-
-## Usage
-MD;
-
-$parser = new ParsedownToc();
-echo $parser->text($markdown);
+$html = $ParsedownToc->text($content);  // Parses '[toc]' tag to ToC if exists
+echo $html;
 ```
 
-**Output:**
-
-```html
-<div id="toc">
-  <ul>
-    <li><a href="#introduction">Introduction</a>
-      <ul>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-  </ul>
-</div>
-
-<h2 id="introduction">Introduction</h2>
-<h3 id="installation">Installation</h3>
-<h2 id="usage">Usage</h2>
-```
-
----
-
-### Separate body and ToC rendering
-
-Use `body()` and `getContentsList()` when the ToC and content need to appear in different parts of the page, such as a sidebar and a main content area.
+### Separate body and ToC:
 
 ```php
 <?php
-require 'vendor/autoload.php';
+$content = file_get_contents('sample.md');
+$ParsedownToc = new \ParsedownToc();
 
-$markdown = file_get_contents('article.md');
-$parser = new ParsedownToc();
-
-$body = $parser->body($markdown);
-$toc  = $parser->getContentsList();
-?>
-<aside>
-    <?= $toc ?>
-</aside>
-<main>
-    <?= $body ?>
-</main>
-```
-
-> **Note:** `body()` must be called before `getContentsList()` on the same instance so that headings are collected before the ToC is rendered.
+$body = $ParsedownToc->body($content);
+$toc  = $ParsedownToc->contentsList();
 
 ---
 
@@ -159,7 +78,16 @@ $parser = (new ParsedownToc())
     ->setTocId('toc');
 ```
 
-### Available options
+| Option         | Type     | Default                                 | Description                                                   |
+|----------------|----------|-----------------------------------------|---------------------------------------------------------------|
+| selectors      | array    | ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']    |                                                               |
+| delimiter      | string   | `-`                                     |                                                               |
+| limit          | int      | `null`                                  |                                                               |
+| lowercase      | boolean  | `true`                                  |                                                               |
+| replacements   | array    | none                                    |                                                               |
+| transliterate  | boolean  | `false`                                 |                                                               |
+| urlencode      | boolean  | `false`                                 | Uses PHP built-in `urlencode` and disables all other options. |
+| url            | string   | ``                                      | Prefixes anchor with the specified URL.                       |
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -174,19 +102,29 @@ $parser = (new ParsedownToc())
 | `toc_tag` | `string` | `'[toc]'` | The marker in Markdown that is replaced with the ToC |
 | `toc_id` | `string` | `'toc'` | The `id` attribute on the wrapper `<div>` when using inline replacement |
 
-### Custom anchor ID generator
+The ParsedownToc class offers several methods for different functionalities:
 
-Replace the built-in slug logic entirely by supplying a callable. The callable receives the raw heading text and the current options array and must return a string. ParsedownToc still applies its uniqueness check to the returned value.
+- **text(string $text):** Returns the parsed content and `[toc]` tag(s).
+- **body(string $text):** Returns the parsed content without the `[toc]` tag.
+- **contentsList([string $type_return='html']):** Returns the ToC in HTML, JSON, or as an array.
+    - _Optional:_ Specify the return type as `html`, `json`, or `array`.
+- **setTocSelectors(array $array):** Allows you to set specific selectors.
+- **setTocDelimiter(string $delimiter):** Define a custom delimiter.
+- **setTocLimit(int $limit):** Set a limit for the table of contents.
+- **setTocLowercase(bool $boolean):** Choose whether the output should be in lowercase.
+- **setTocReplacements(array $replacements):** Provide replacements for specific content.
+- **setTocTransliterate(bool $boolean):** Specify if transliterations should be made.
+- **setTocUrlencode(bool $boolean):** Decide if you want to use PHP's built-in `urlencode`.
+- **setTocBlacklist(array $blacklist):** Blacklist specific IDs from header anchor generation.
+- **setTocUrl(string $url):** Set a specific URL prefix for anchors.
+- **setTocTag(string $tag='[tag]'):** Set a custom ToC markdown tag.
+- **setTocId(string $id):** Set a custom ID for the table of contents.
 
-```php
-$parser->setAnchorIdGenerator(function (string $text, array $options): string {
-    return strtolower(preg_replace('/[^a-z0-9]+/i', '-', $text));
-});
-```
+### Custom Anchors
 
-### String/regex replacements
+If you want to use your own logic for creating slugs for the headings, you can do so by using `setCreateAnchorIDCallback`.
 
-The `replacements` option accepts a map of search → replacement pairs. Values enclosed in regex delimiters (e.g. `/pattern/flags`) are treated as regular expressions; all other values are treated as literal strings.
+Example using [cocur's slugify](https://github.com/cocur/slugify):
 
 ```php
 $parser->setReplacements([
@@ -234,24 +172,3 @@ The test suite uses [PHPUnit](https://phpunit.de/) 11.
 composer install
 vendor/bin/phpunit
 ```
-
-Tests are located in the `tests/` directory and cover anchor ID generation, heading element handling, TOC tag processing, content list management, and setter validation.
-
----
-
-## Contributing
-
-Contributions are welcome. Please follow these steps:
-
-1. Fork the repository and create a feature branch.
-2. Write or update tests for your changes.
-3. Ensure all tests pass: `vendor/bin/phpunit`
-4. Check code style: `vendor/bin/php-cs-fixer fix --dry-run`
-5. Run static analysis: `vendor/bin/psalm`
-6. Open a pull request describing the change.
-
----
-
-## License
-
-ParsedownToc is open-source software released under the [MIT License](LICENSE).

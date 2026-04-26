@@ -1,5 +1,4 @@
 <?php
-
 use PHPUnit\Framework\TestCase;
 
 class AnchorIDGenerationTest extends TestCase
@@ -35,7 +34,7 @@ class AnchorIDGenerationTest extends TestCase
         $secondCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
 
         $this->assertNotEquals($firstCall, $secondCall);
-        $this->assertTrue(str_contains($secondCall, $firstCall . '-'));
+        $this->assertTrue(strpos($secondCall, $firstCall . '-') !== false);
         $this->assertEquals('heading', $firstCall);
         $this->assertEquals('heading-1', $secondCall);
     }
@@ -48,7 +47,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIdGenerator()
     {
-        $customFunction = function ($text, $options) {
+        $customFunction = function($text, $options) {
             return mb_strtolower(str_replace(' ', '_', $text));
         };
         $this->parsedownToc->setAnchorIdGenerator($customFunction);
@@ -60,13 +59,13 @@ class AnchorIDGenerationTest extends TestCase
     }
 
     /**
-    * Test case for generating anchor IDs with reserved ids.
+     * Test case for generating anchor IDs with blacklist.
      *
      * This test verifies that the createAnchorID method of the ParsedownToc class
      * generates the correct anchor ID when a blacklist is set and the input text
-     * matches an item in the reserved ids list.
+     * matches an item in the blacklist.
      */
-    public function testAnchorIDReservedIds()
+    public function testAnchorIDBlacklist()
     {
         $text = "heading";
         $this->parsedownToc->setReservedIds(['heading']);
@@ -76,30 +75,21 @@ class AnchorIDGenerationTest extends TestCase
         $this->assertEquals('heading-1', $result);
     }
 
-    public function testAnchorIDReservedIdsAreTypeStrict()
-    {
-        $this->parsedownToc->setReservedIds([123]);
-
-        $result = $this->invokeMethod($this->parsedownToc, 'createAnchorID', ['123']);
-
-        $this->assertEquals('123', $result);
-    }
-
     /**
-     * Test case for anchor ID heading levels.
+     * Test case for anchor ID selectors.
      */
-    public function testAnchorIDHeadingLevels()
+    public function testAnchorIDSelectors()
     {
         $this->parsedownToc->setHeadingLevels(['h1']);
 
         $text = "# heading1";
         $this->parsedownToc->text($text);
-        $result = $this->parsedownToc->getContentsList('html');
+        $result = $this->parsedownToc->contentsList('html');
         $this->assertStringContainsString('<a href="#heading1">heading1</a>', $result);
 
         $text = "## heading2";
         $this->parsedownToc->text($text);
-        $result = $this->parsedownToc->getContentsList('html');
+        $result = $this->parsedownToc->contentsList('html');
         $this->assertStringNotContainsString('<a href="#heading2">heading2</a>', $result);
     }
 
