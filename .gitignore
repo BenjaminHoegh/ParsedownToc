@@ -1,6 +1,7 @@
 vendor/
 test/
 composer.lock
+.php-cs-fixer.cache
 .phpunit.result.cache
 .nova/
 .idea/
