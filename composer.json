@@ -19,7 +19,7 @@
         "erusev/parsedown": "^1.8"
     },
     "suggest": {
-        "erusev/parsedown-extra": "^0.9"
+        "erusev/parsedown-extra": "^0.9.0"
     },
     "autoload": {
         "psr-0": {
