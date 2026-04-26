@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 class HeadingElementTest extends TestCase
 {
     protected $parsedownToc;
-    
+
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -20,7 +20,7 @@ class HeadingElementTest extends TestCase
         $line = [
             'body' => "# 1.1 Headings",
             'indent' => 0,
-            'text' => "# 1.1 Headings"
+            'text' => "# 1.1 Headings",
         ];
 
         $actualBlock = $this->invokeMethod($this->parsedownToc, 'blockHeader', [$line]);
@@ -40,7 +40,7 @@ class HeadingElementTest extends TestCase
         $line = [
             'body' => "==========",
             'indent' => 0,
-            'text' => "=========="
+            'text' => "==========",
         ];
 
         $block = $this->createSetextHeaderBlock('Alt-H1');

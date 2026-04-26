@@ -1,4 +1,5 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
 
 class ContentListManagementTest extends TestCase
@@ -11,7 +12,7 @@ class ContentListManagementTest extends TestCase
         $this->parsedownToc->setSafeMode(true);
     }
 
-    
+
     public function testContentsListString()
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
@@ -19,7 +20,7 @@ class ContentListManagementTest extends TestCase
         $result = $this->parsedownToc->getContentsList('string');
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
-        
+
         // Also check that we can use html as an alias for string
         $result = $this->parsedownToc->getContentsList('html');
         $this->assertIsString($result);
@@ -51,7 +52,7 @@ class ContentListManagementTest extends TestCase
 
         $this->parsedownToc->getContentsList('json');
     }
-    
+
     public function testContentsListArray()
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
