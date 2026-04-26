@@ -22,12 +22,12 @@ class ParsedownToc extends ParsedownTocParentAlias
     /** @var array<string, mixed> */
     private const DEFAULT_OPTIONS = [
         'heading_levels' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        'slug_delimiter' => '-',
+        'delimiter' => '-',
         'toc_items_limit' => null,
-        'slug_lowercase' => true,
-        'slug_replacements' => null,
-        'slug_transliterate' => false,
-        'slug_urlencode' => false,
+        'lowercase' => true,
+        'replacements' => null,
+        'transliterate' => false,
+        'urlencode' => false,
         'reserved_ids' => [],
         'prefix' => '',
         'toc_tag' => '[toc]',
@@ -42,7 +42,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     /** @var array<string, int> */
     private array $anchorDuplicates = [];
 
-    /** @var array<int, array{id: string, text: string, level: int}> */
+    /** @var array<int, array{id: string, text: string, level: string}> */
     private array $contentsListArray = [];
 
     /**
@@ -68,12 +68,12 @@ class ParsedownToc extends ParsedownTocParentAlias
         foreach ($options as $name => $value) {
             match ($name) {
                 'heading_levels' => $this->setHeadingLevels($this->assertStringList($value, $name)),
-                'slug_delimiter' => $this->setSlugDelimiter($this->assertString($value, $name)),
+                'delimiter' => $this->setDelimiter($this->assertString($value, $name)),
                 'toc_items_limit' => $this->setTocItemsLimit($this->assertNullableNonNegativeInt($value, $name)),
-                'slug_lowercase' => $this->setSlugLowercase($this->assertBool($value, $name)),
-                'slug_replacements' => $this->setSlugReplacements($this->assertNullableStringMap($value, $name)),
-                'slug_transliterate' => $this->setSlugTransliterate($this->assertBool($value, $name)),
-                'slug_urlencode' => $this->setSlugUrlencode($this->assertBool($value, $name)),
+                'lowercase' => $this->setLowercase($this->assertBool($value, $name)),
+                'replacements' => $this->setReplacements($this->assertNullableStringMap($value, $name)),
+                'transliterate' => $this->setTransliterate($this->assertBool($value, $name)),
+                'urlencode' => $this->setUrlencode($this->assertBool($value, $name)),
                 'reserved_ids' => $this->setReservedIds($this->assertStringList($value, $name)),
                 'prefix' => $this->setTocPrefix($this->assertString($value, $name)),
                 'toc_tag' => $this->setTocTag($this->assertString($value, $name)),
@@ -97,13 +97,13 @@ class ParsedownToc extends ParsedownTocParentAlias
         $this->options['heading_levels'] = $headingLevels;
     }
 
-    public function setSlugDelimiter(string $slugDelimiter): void
+    public function setDelimiter(string $slugDelimiter): void
     {
         if ($slugDelimiter === '') {
             throw new \InvalidArgumentException('Slug delimiter cannot be empty.');
         }
 
-        $this->options['slug_delimiter'] = $slugDelimiter;
+        $this->options['delimiter'] = $slugDelimiter;
     }
 
     public function setTocItemsLimit(?int $tocItemsLimit): void
@@ -115,27 +115,27 @@ class ParsedownToc extends ParsedownTocParentAlias
         $this->options['toc_items_limit'] = $tocItemsLimit;
     }
 
-    public function setSlugLowercase(bool $slugLowercase): void
+    public function setLowercase(bool $slugLowercase): void
     {
-        $this->options['slug_lowercase'] = $slugLowercase;
+        $this->options['lowercase'] = $slugLowercase;
     }
 
     /**
      * @param array<string, string>|null $slugReplacements
      */
-    public function setSlugReplacements(?array $slugReplacements): void
+    public function setReplacements(?array $slugReplacements): void
     {
-        $this->options['slug_replacements'] = $slugReplacements;
+        $this->options['replacements'] = $slugReplacements;
     }
 
-    public function setSlugTransliterate(bool $slugTransliterate): void
+    public function setTransliterate(bool $slugTransliterate): void
     {
-        $this->options['slug_transliterate'] = $slugTransliterate;
+        $this->options['transliterate'] = $slugTransliterate;
     }
 
-    public function setSlugUrlencode(bool $slugUrlencode): void
+    public function setUrlencode(bool $slugUrlencode): void
     {
-        $this->options['slug_urlencode'] = $slugUrlencode;
+        $this->options['urlencode'] = $slugUrlencode;
     }
 
     /**
@@ -214,9 +214,9 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @return string|array<int, array{id: string, text: string, level: int}>
+     * @return string|array<int, array{id: string, text: string, level: string}>
      */
-    public function contentsList(string $returnType = 'html'): string|array
+    public function getContentsList(string $returnType = 'html'): string|array
     {
         return match (strtolower($returnType)) {
             'string', 'html' => $this->renderContentsListHtml(),
@@ -354,7 +354,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return is_scalar($text) ? (string) $text : '';
     }
 
-    protected function renderContentsListHtml(): string
+    private function renderContentsListHtml(): string
     {
         if ($this->contentsListArray === []) {
             return '';
@@ -405,9 +405,9 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @param array<int, array{content: array{id: string, text: string, level: int}, children: list}> $nodes
+     * @param array<int, array{content: array{id: string, text: string, level: string}, children: list}> $nodes
      */
-    protected function renderContentsListNodes(array $nodes): string
+    private function renderContentsListNodes(array $nodes): string
     {
         if ($nodes === []) {
             return '';
@@ -438,7 +438,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $html . '</ul>' . PHP_EOL;
     }
 
-    protected function createAnchorID(string $text): string
+    private function createAnchorID(string $text): string
     {
         if ($this->anchorIdGenerator !== null) {
             return (string) call_user_func($this->anchorIdGenerator, $text, $this->options);
@@ -446,25 +446,25 @@ class ParsedownToc extends ParsedownTocParentAlias
 
         $text = $this->normalizeString($text);
 
-        if ($this->options['slug_lowercase'] === true) {
+        if ($this->options['lowercase'] === true) {
             $text = mb_strtolower($text, 'UTF-8');
         }
 
-        if (is_array($this->options['slug_replacements'])) {
-            $text = $this->applyReplacements($text, $this->options['slug_replacements']);
+        if (is_array($this->options['replacements'])) {
+            $text = $this->applyReplacements($text, $this->options['replacements']);
         }
 
-        if ($this->options['slug_transliterate'] === true) {
+        if ($this->options['transliterate'] === true) {
             $text = $this->transliterateWithCharacterMap($text);
 
-            if ($this->options['slug_lowercase'] === true) {
+            if ($this->options['lowercase'] === true) {
                 $text = strtolower($text);
             }
         }
 
         $text = $this->sanitizeAnchor($text);
 
-        if ($this->options['slug_urlencode'] === true) {
+        if ($this->options['urlencode'] === true) {
             $text = rawurlencode($text);
         }
 
@@ -476,7 +476,7 @@ class ParsedownToc extends ParsedownTocParentAlias
     /**
      * @param array<string, string> $replacements
      */
-    protected function applyReplacements(string $text, array $replacements): string
+    private function applyReplacements(string $text, array $replacements): string
     {
         foreach ($replacements as $search => $replacement) {
             if ($this->isRegexPattern($search)) {
@@ -497,7 +497,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $text;
     }
 
-    protected function isRegexPattern(string $pattern): bool
+    private function isRegexPattern(string $pattern): bool
     {
         if ($pattern === '') {
             return false;
@@ -522,7 +522,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return false;
     }
 
-    protected function finalizeAnchorID(string $text): string
+    private function finalizeAnchorID(string $text): string
     {
         $text = trim($text);
 
@@ -533,12 +533,12 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $this->uniquifyAnchorID($text);
     }
 
-    protected function normalizeString(string $text): string
+    private function normalizeString(string $text): string
     {
         return $this->normalizeUnicode($text);
     }
 
-    protected function normalizeUnicode(string $text): string
+    private function normalizeUnicode(string $text): string
     {
         if (class_exists('\Normalizer')) {
             $normalized = \Normalizer::normalize($text, \Normalizer::FORM_C);
@@ -551,7 +551,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return mb_scrub($text, 'UTF-8');
     }
 
-    protected function transliterateWithCharacterMap(string $text): string
+    private function transliterateWithCharacterMap(string $text): string
     {
         $characterMap = [
             // Latin
@@ -619,15 +619,15 @@ class ParsedownToc extends ParsedownTocParentAlias
         return strtr($text, $characterMap);
     }
 
-    protected function sanitizeAnchor(string $text): string
+    private function sanitizeAnchor(string $text): string
     {
-        $delimiter = (string) $this->options['slug_delimiter'];
+        $delimiter = (string) $this->options['delimiter'];
 
         if ($delimiter === '') {
             throw new \RuntimeException('Slug delimiter cannot be empty.');
         }
 
-        $pattern = $this->options['slug_transliterate'] === true
+        $pattern = $this->options['transliterate'] === true
             ? '/[^A-Za-z0-9]+/'
             : '/[^\p{L}\p{Nd}]+/u';
 
@@ -637,7 +637,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return trim($text, $delimiter);
     }
 
-    protected function applyAnchorPrefix(string $text): string
+    private function applyAnchorPrefix(string $text): string
     {
         $prefix = (string) $this->options['prefix'];
 
@@ -648,7 +648,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $prefix . $text;
     }
 
-    protected function uniquifyAnchorID(string $text): string
+    private function uniquifyAnchorID(string $text): string
     {
         /** @var list<string> $reservedIds */
         $reservedIds = $this->options['reserved_ids'];
@@ -675,18 +675,18 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $text;
     }
 
-    protected function reserveAnchorID(string $id): void
+    private function reserveAnchorID(string $id): void
     {
         $this->anchorDuplicates[$id] ??= 1;
     }
 
-    protected function resetParserState(): void
+    private function resetParserState(): void
     {
         $this->anchorDuplicates = [];
         $this->contentsListArray = [];
     }
 
-    protected function renderMarkdown(string $text): string
+    private function renderMarkdown(string $text): string
     {
         $encodedText = $this->encodeTagToHash($text);
         $html = parent::text($encodedText);
@@ -694,7 +694,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $this->decodeTagFromHash($html);
     }
 
-    protected function decodeTagFromHash(string $text): string
+    private function decodeTagFromHash(string $text): string
     {
         $tocTag = $this->getTocTag();
         $hashedTag = $this->getHashedTocTag();
@@ -706,7 +706,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         return str_replace($hashedTag, $tocTag, $text);
     }
 
-    protected function encodeTagToHash(string $text): string
+    private function encodeTagToHash(string $text): string
     {
         $tocTag = $this->getTocTag();
 
@@ -717,30 +717,30 @@ class ParsedownToc extends ParsedownTocParentAlias
         return str_replace($tocTag, $this->getHashedTocTag(), $text);
     }
 
-    protected function fetchText(string $text): string
+    private function fetchText(string $text): string
     {
         return trim(strip_tags($this->line($text)));
     }
 
-    protected function getTocIdAttribute(): string
+    private function getTocIdAttribute(): string
     {
         return (string) $this->options['toc_id'];
     }
 
-    protected function getSalt(): string
+    private function getSalt(): string
     {
         return $this->salt ??= sha1((string) microtime(true));
     }
 
-    protected function getTocTag(): string
+    public function getTocTag(): string
     {
         return (string) $this->options['toc_tag'];
     }
 
     /**
-     * @param array{id: string, text: string, level: int} $content
+     * @param array{id: string, text: string, level: string} $content
      */
-    protected function setContentsList(array $content): void
+    private function setContentsList(array $content): void
     {
         $limit = $this->options['toc_items_limit'];
 
