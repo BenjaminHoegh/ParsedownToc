@@ -146,36 +146,17 @@ $toc  = $parser->getContentsList();
 
 ## Configuration
 
-Options can be set in bulk with `setOptions()` or individually via dedicated setters. Both approaches are interchangeable and can be mixed freely.
-
-### Bulk configuration
+All setters return `static`, so they can be chained freely.
 
 ```php
-$parser = new ParsedownToc();
-
-$parser->setOptions([
-    'heading_levels'  => ['h2', 'h3'],
-    'delimiter'       => '_',
-    'toc_items_limit' => 10,
-    'lowercase'       => true,
-    'prefix'          => 'heading-',
-    'reserved_ids'    => ['toc', 'introduction'],
-    'toc_tag'         => '[toc]',
-    'toc_id'          => 'toc',
-]);
-```
-
-### Individual setters
-
-```php
-$parser->setHeadingLevels(['h2', 'h3']);
-$parser->setDelimiter('_');
-$parser->setTocItemsLimit(10);
-$parser->setLowercase(true);
-$parser->setTocPrefix('heading-');
-$parser->setReservedIds(['toc', 'introduction']);
-$parser->setTocTag('[toc]');
-$parser->setTocId('toc');
+$parser = (new ParsedownToc())
+    ->setHeadingLevels(['h2', 'h3'])
+    ->setDelimiter('_')
+    ->setLowercase(true)
+    ->setPrefix('heading-')
+    ->setReservedIds(['toc', 'introduction'])
+    ->setTocTag('[toc]')
+    ->setTocId('toc');
 ```
 
 ### Available options
@@ -184,7 +165,6 @@ $parser->setTocId('toc');
 |---|---|---|---|
 | `heading_levels` | `string[]` | `['h1'…'h6']` | Which heading levels to include in the ToC |
 | `delimiter` | `string` | `'-'` | Character used to replace spaces and non-alphanumeric characters in anchor IDs |
-| `toc_items_limit` | `int\|null` | `null` | Maximum number of headings to include in the ToC; `null` means unlimited |
 | `lowercase` | `bool` | `true` | Convert anchor IDs to lowercase |
 | `replacements` | `array<string,string>\|null` | `null` | Map of strings or regex patterns to replace in the slug before sanitization |
 | `transliterate` | `bool` | `false` | Transliterate non-ASCII characters to their ASCII equivalents before slugging |
@@ -231,18 +211,15 @@ $parser->setReplacements([
 
 | Method | Description |
 |---|---|
-| `setOptions(array $options)` | Set multiple options at once |
-| `getOptions()` | Return the current options array |
 | `getTocTag()` | Return the current ToC marker string |
 | `setHeadingLevels(array $levels)` | Set which heading levels to include |
 | `setDelimiter(string $delimiter)` | Set the slug delimiter character |
-| `setTocItemsLimit(?int $limit)` | Set the maximum number of ToC entries |
 | `setLowercase(bool $lowercase)` | Enable or disable lowercasing of anchor IDs |
 | `setReplacements(?array $replacements)` | Set string/regex replacements for slug generation |
 | `setTransliterate(bool $transliterate)` | Enable or disable transliteration |
 | `setUrlencode(bool $urlencode)` | Enable or disable URL encoding of anchor IDs |
 | `setReservedIds(array $ids)` | Set anchor IDs that must not be generated |
-| `setTocPrefix(string $prefix)` | Set a prefix for all generated anchor IDs |
+| `setPrefix(string $prefix)` | Set a prefix for all generated anchor IDs |
 | `setTocTag(string $tag)` | Set the Markdown marker to replace with the ToC |
 | `setTocId(string $id)` | Set the `id` attribute of the ToC wrapper element |
 | `setAnchorIdGenerator(callable $generator)` | Provide a custom anchor ID generation callable |
