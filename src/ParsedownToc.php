@@ -19,25 +19,30 @@ class ParsedownToc extends ParsedownTocParentAlias
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.9.0';
     public const MIN_PHP_VERSION = '8.2';
 
-    /** @var array<string, mixed> */
-    private const DEFAULT_OPTIONS = [
-        'heading_levels' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        'delimiter' => '-',
-        'toc_items_limit' => null,
-        'lowercase' => true,
-        'replacements' => null,
-        'transliterate' => false,
-        'urlencode' => false,
-        'reserved_ids' => [],
-        'prefix' => '',
-        'toc_tag' => '[toc]',
-        'toc_id' => 'toc',
-    ];
-
     private const ALLOWED_HEADING_LEVELS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
-    /** @var array<string, mixed> */
-    protected array $options = self::DEFAULT_OPTIONS;
+    /** @var list<string> */
+    private array $headingLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+    private string $delimiter = '-';
+
+    private bool $lowercase = true;
+
+    /** @var array<string, string>|null */
+    private ?array $replacements = null;
+
+    private bool $transliterate = false;
+
+    private bool $urlencode = false;
+
+    /** @var list<string> */
+    private array $reservedIds = [];
+
+    private string $prefix = '';
+
+    private string $tocTag = '[toc]';
+
+    private string $tocId = 'toc';
 
     /** @var array<string, int> */
     private array $anchorDuplicates = [];
@@ -62,32 +67,9 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * @param array<string, mixed> $options
-     */
-    public function setOptions(array $options): void
-    {
-        foreach ($options as $name => $value) {
-            match ($name) {
-                'heading_levels' => $this->setHeadingLevels($this->assertStringList($value, $name)),
-                'delimiter' => $this->setDelimiter($this->assertString($value, $name)),
-                'toc_items_limit' => $this->setTocItemsLimit($this->assertNullableNonNegativeInt($value, $name)),
-                'lowercase' => $this->setLowercase($this->assertBool($value, $name)),
-                'replacements' => $this->setReplacements($this->assertNullableStringMap($value, $name)),
-                'transliterate' => $this->setTransliterate($this->assertBool($value, $name)),
-                'urlencode' => $this->setUrlencode($this->assertBool($value, $name)),
-                'reserved_ids' => $this->setReservedIds($this->assertStringList($value, $name)),
-                'prefix' => $this->setTocPrefix($this->assertString($value, $name)),
-                'toc_tag' => $this->setTocTag($this->assertString($value, $name)),
-                'toc_id' => $this->setTocId($this->assertString($value, $name)),
-                default => throw new \InvalidArgumentException(sprintf('Unknown option "%s".', $name)),
-            };
-        }
-    }
-
-    /**
      * @param list<string> $headingLevels
      */
-    public function setHeadingLevels(array $headingLevels): void
+    public function setHeadingLevels(array $headingLevels): static
     {
         foreach ($headingLevels as $level) {
             if (!in_array($level, self::ALLOWED_HEADING_LEVELS, true)) {
@@ -95,87 +77,90 @@ class ParsedownToc extends ParsedownTocParentAlias
             }
         }
 
-        $this->options['heading_levels'] = $headingLevels;
+        $this->headingLevels = array_values($headingLevels);
+
+        return $this;
     }
 
-    public function setDelimiter(string $slugDelimiter): void
+    public function setDelimiter(string $delimiter): static
     {
-        if ($slugDelimiter === '') {
+        if ($delimiter === '') {
             throw new \InvalidArgumentException('Slug delimiter cannot be empty.');
         }
 
-        $this->options['delimiter'] = $slugDelimiter;
+        $this->delimiter = $delimiter;
+
+        return $this;
     }
 
-    public function setTocItemsLimit(?int $tocItemsLimit): void
+    public function setLowercase(bool $lowercase): static
     {
-        if ($tocItemsLimit !== null && $tocItemsLimit < 0) {
-            throw new \InvalidArgumentException('TOC item limit must be null or a non-negative integer.');
-        }
+        $this->lowercase = $lowercase;
 
-        $this->options['toc_items_limit'] = $tocItemsLimit;
-    }
-
-    public function setLowercase(bool $slugLowercase): void
-    {
-        $this->options['lowercase'] = $slugLowercase;
+        return $this;
     }
 
     /**
-     * @param array<string, string>|null $slugReplacements
+     * @param array<string, string>|null $replacements
      */
-    public function setReplacements(?array $slugReplacements): void
+    public function setReplacements(?array $replacements): static
     {
-        $this->options['replacements'] = $slugReplacements;
+        $this->replacements = $replacements;
+
+        return $this;
     }
 
-    public function setTransliterate(bool $slugTransliterate): void
+    public function setTransliterate(bool $transliterate): static
     {
-        $this->options['transliterate'] = $slugTransliterate;
+        $this->transliterate = $transliterate;
+
+        return $this;
     }
 
-    public function setUrlencode(bool $slugUrlencode): void
+    public function setUrlencode(bool $urlencode): static
     {
-        $this->options['urlencode'] = $slugUrlencode;
+        $this->urlencode = $urlencode;
+
+        return $this;
     }
 
     /**
      * @param list<string> $reservedIds
      */
-    public function setReservedIds(array $reservedIds): void
+    public function setReservedIds(array $reservedIds): static
     {
-        $this->options['reserved_ids'] = $reservedIds;
+        $this->reservedIds = array_values($reservedIds);
+
+        return $this;
     }
 
-    public function setTocPrefix(string $prefix): void
+    public function setPrefix(string $prefix): static
     {
-        $this->options['prefix'] = $prefix;
+        $this->prefix = $prefix;
+
+        return $this;
     }
 
-    public function setTocTag(string $tocTag): void
+    public function setTocTag(string $tocTag): static
     {
         if ($tocTag === '') {
             throw new \InvalidArgumentException('TOC tag cannot be empty.');
         }
 
-        $this->options['toc_tag'] = $tocTag;
+        $this->tocTag = $tocTag;
+
+        return $this;
     }
 
-    public function setTocId(string $tocId): void
+    public function setTocId(string $tocId): static
     {
         if ($tocId === '') {
             throw new \InvalidArgumentException('TOC ID cannot be empty.');
         }
 
-        $this->options['toc_id'] = $tocId;
-    }
+        $this->tocId = $tocId;
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
+        return $this;
     }
 
     /**
@@ -239,9 +224,11 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * @param callable(string, array<string, mixed>): string $anchorIdGenerator
      */
-    public function setAnchorIdGenerator(callable $anchorIdGenerator): void
+    public function setAnchorIdGenerator(callable $anchorIdGenerator): static
     {
         $this->anchorIdGenerator = $anchorIdGenerator;
+
+        return $this;
     }
 
     /**
@@ -292,7 +279,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
         $level = $element['name'] ?? null;
 
-        if (!is_string($level) || !in_array($level, $this->options['heading_levels'], true)) {
+        if (!is_string($level) || !in_array($level, $this->headingLevels, true)) {
             return $block;
         }
 
@@ -421,30 +408,30 @@ class ParsedownToc extends ParsedownTocParentAlias
     private function createAnchorID(string $text): string
     {
         if ($this->anchorIdGenerator !== null) {
-            return (string) call_user_func($this->anchorIdGenerator, $text, $this->options);
+            return (string) call_user_func($this->anchorIdGenerator, $text, $this->buildOptionsSnapshot());
         }
 
         $text = $this->normalizeString($text);
 
-        if ($this->options['lowercase'] === true) {
+        if ($this->lowercase === true) {
             $text = mb_strtolower($text, 'UTF-8');
         }
 
-        if (is_array($this->options['replacements'])) {
-            $text = $this->applyReplacements($text, $this->options['replacements']);
+        if (is_array($this->replacements)) {
+            $text = $this->applyReplacements($text, $this->replacements);
         }
 
-        if ($this->options['transliterate'] === true) {
+        if ($this->transliterate === true) {
             $text = $this->transliterateWithCharacterMap($text);
 
-            if ($this->options['lowercase'] === true) {
+            if ($this->lowercase === true) {
                 $text = strtolower($text);
             }
         }
 
         $text = $this->sanitizeAnchor($text);
 
-        if ($this->options['urlencode'] === true) {
+        if ($this->urlencode === true) {
             $text = rawurlencode($text);
         }
 
@@ -601,13 +588,13 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private function sanitizeAnchor(string $text): string
     {
-        $delimiter = (string) $this->options['delimiter'];
+        $delimiter = $this->delimiter;
 
         if ($delimiter === '') {
             throw new \RuntimeException('Slug delimiter cannot be empty.');
         }
 
-        $pattern = $this->options['transliterate'] === true
+        $pattern = $this->transliterate === true
             ? '/[^A-Za-z0-9]+/'
             : '/[^\p{L}\p{Nd}]+/u';
 
@@ -619,7 +606,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private function applyAnchorPrefix(string $text): string
     {
-        $prefix = (string) $this->options['prefix'];
+        $prefix = $this->prefix;
 
         if ($prefix === '') {
             return $text;
@@ -630,8 +617,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private function uniquifyAnchorID(string $text): string
     {
-        /** @var list<string> $reservedIds */
-        $reservedIds = $this->options['reserved_ids'];
+        $reservedIds = $this->reservedIds;
 
         $this->anchorDuplicates[$text] ??= 0;
 
@@ -704,7 +690,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     private function getTocIdAttribute(): string
     {
-        return (string) $this->options['toc_id'];
+        return $this->tocId;
     }
 
     private function getSalt(): string
@@ -714,7 +700,7 @@ class ParsedownToc extends ParsedownTocParentAlias
 
     public function getTocTag(): string
     {
-        return (string) $this->options['toc_tag'];
+        return $this->tocTag;
     }
 
     /**
@@ -722,12 +708,6 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     private function setContentsList(array $content): void
     {
-        $limit = $this->options['toc_items_limit'];
-
-        if ($limit !== null && count($this->contentsListArray) >= $limit) {
-            return;
-        }
-
         $this->contentsListArray[] = $content;
     }
 
@@ -766,6 +746,25 @@ class ParsedownToc extends ParsedownTocParentAlias
         }
 
         return $result;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildOptionsSnapshot(): array
+    {
+        return [
+            'heading_levels' => $this->headingLevels,
+            'delimiter'      => $this->delimiter,
+            'lowercase'      => $this->lowercase,
+            'replacements'   => $this->replacements,
+            'transliterate'  => $this->transliterate,
+            'urlencode'      => $this->urlencode,
+            'reserved_ids'   => $this->reservedIds,
+            'prefix'         => $this->prefix,
+            'toc_tag'        => $this->tocTag,
+            'toc_id'         => $this->tocId,
+        ];
     }
 
     private function assertRuntimeRequirements(): void
@@ -810,82 +809,4 @@ class ParsedownToc extends ParsedownTocParentAlias
         $constructor->invoke($this);
     }
 
-    /**
-     * @return list<string>
-     */
-    private function assertStringList(mixed $value, string $optionName): array
-    {
-        if (!is_array($value)) {
-            throw new \InvalidArgumentException(sprintf('Option "%s" must be an array of strings.', $optionName));
-        }
-
-        foreach ($value as $item) {
-            if (!is_string($item)) {
-                throw new \InvalidArgumentException(sprintf('Option "%s" must contain strings only.', $optionName));
-            }
-        }
-
-        return array_values($value);
-    }
-
-    private function assertString(mixed $value, string $optionName): string
-    {
-        if (!is_string($value)) {
-            throw new \InvalidArgumentException(sprintf('Option "%s" must be a string.', $optionName));
-        }
-
-        return $value;
-    }
-
-    private function assertBool(mixed $value, string $optionName): bool
-    {
-        if (!is_bool($value)) {
-            throw new \InvalidArgumentException(sprintf('Option "%s" must be a boolean.', $optionName));
-        }
-
-        return $value;
-    }
-
-    private function assertNullableNonNegativeInt(mixed $value, string $optionName): ?int
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (!is_int($value) || $value < 0) {
-            throw new \InvalidArgumentException(
-                sprintf('Option "%s" must be null or a non-negative integer.', $optionName)
-            );
-        }
-
-        return $value;
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    private function assertNullableStringMap(mixed $value, string $optionName): ?array
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (!is_array($value)) {
-            throw new \InvalidArgumentException(sprintf('Option "%s" must be null or an array.', $optionName));
-        }
-
-        $result = [];
-
-        foreach ($value as $search => $replacement) {
-            if (!is_string($search) || !is_scalar($replacement)) {
-                throw new \InvalidArgumentException(
-                    sprintf('Option "%s" must be an array<string, scalar>.', $optionName)
-                );
-            }
-
-            $result[$search] = (string) $replacement;
-        }
-
-        return $result;
-    }
 }
