@@ -4,7 +4,7 @@ use PHPUnit\Framework\TestCase;
 
 class SettersTest extends TestCase
 {
-    protected $parsedownToc;
+    protected ParsedownToc $parsedownToc;
 
     protected function setUp(): void
     {
@@ -12,140 +12,167 @@ class SettersTest extends TestCase
         $this->parsedownToc->setSafeMode(true);
     }
 
-    /**
-     * Test case for the `setOptions` method.
-     */
-    public function testSetOptions()
-    {
-        $options = [
-            'toc_id' => '[[toc]]',
-        ];
+    // -------------------------------------------------------------------------
+    // Behavioral setter tests
+    // -------------------------------------------------------------------------
 
-        $this->parsedownToc->setOptions($options);
-        $this->assertEquals($options['toc_id'], $this->parsedownToc->getOptions()['toc_id']);
+    public function testSetHeadingLevels(): void
+    {
+        $this->parsedownToc->setHeadingLevels(['h1', 'h2', 'h3', 'h4']);
+
+        $this->parsedownToc->text("# H1\n\n##### H5");
+        $list = $this->parsedownToc->getContentsList('array');
+
+        $levels = array_column($list, 'level');
+        $this->assertContains('h1', $levels);
+        $this->assertNotContains('h5', $levels);
     }
 
-    /**
-     * Test case for the `setHeadingLevels` method.
-     */
-    public function testSetHeadingLevels()
+    public function testSetDelimiter(): void
     {
-        $headingLevels = [
-            'h1' => 'h1',
-            'h2' => 'h2',
-            'h3' => 'h3',
-            'h4' => 'h4',
-        ];
+        $this->parsedownToc->setDelimiter('_');
 
-        $this->parsedownToc->setHeadingLevels($headingLevels);
-        $this->assertEquals($headingLevels, $this->parsedownToc->getOptions()['heading_levels']);
+        $output = $this->parsedownToc->text('# Hello World');
+
+        $this->assertStringContainsString('id="hello_world"', $output);
     }
 
-    /**
-     * Test case for the `setDelimiter` method.
-     */
-    public function testsetDelimiter()
+    public function testSetLowercase(): void
     {
-        $delimiter = '&';
+        $this->parsedownToc->setLowercase(false);
 
-        $this->parsedownToc->setDelimiter($delimiter);
-        $this->assertEquals($delimiter, $this->parsedownToc->getOptions()['delimiter']);
+        $output = $this->parsedownToc->text('# Hello World');
+
+        $this->assertStringContainsString('id="Hello-World"', $output);
     }
 
-    /**
-     * Test case for the `setTocItemsLimit` method.
-     */
-    public function testSetTocItemsLimit()
+    public function testSetReplacements(): void
     {
-        $limit = 3;
+        $this->parsedownToc->setReplacements(['o' => '0']);
 
-        $this->parsedownToc->setTocItemsLimit($limit);
-        $this->assertEquals($limit, $this->parsedownToc->getOptions()['toc_items_limit']);
+        $output = $this->parsedownToc->text('# Hello World');
+
+        $this->assertStringContainsString('id="hell0-w0rld"', $output);
     }
 
-    /**
-     * Test case for the `setLowercase` method.
-     */
-    public function testsetLowercase()
+    public function testSetTransliterate(): void
     {
-        $lowercase = false;
+        $this->parsedownToc->setTransliterate(true);
 
-        $this->parsedownToc->setLowercase($lowercase);
-        $this->assertEquals($lowercase, $this->parsedownToc->getOptions()['lowercase']);
+        $output = $this->parsedownToc->text('# Héllo');
+
+        $this->assertStringContainsString('id="hello"', $output);
     }
 
-    /**
-     * Test case for the `setReplacements` method.
-     */
-    public function testsetReplacements()
+    public function testSetUrlencode(): void
     {
-        $replacements = [
-            'BadKitty' => '-',
-        ];
+        $this->parsedownToc->setLowercase(false)->setUrlencode(true);
 
-        $this->parsedownToc->setReplacements($replacements);
-        $this->assertEquals($replacements, $this->parsedownToc->getOptions()['replacements']);
+        $output = $this->parsedownToc->text('# Héllo');
+
+        $this->assertStringContainsString('id="H%C3%A9llo"', $output);
     }
 
-    /**
-     * Test case for the `setTransliterate` method.
-     */
-    public function testsetTransliterate()
+    public function testSetReservedIds(): void
     {
-        $transliterate = false;
+        $this->parsedownToc->setReservedIds(['test']);
 
-        $this->parsedownToc->setTransliterate($transliterate);
-        $this->assertEquals($transliterate, $this->parsedownToc->getOptions()['transliterate']);
+        $output = $this->parsedownToc->text('# Test');
+
+        $this->assertStringContainsString('id="test-1"', $output);
     }
 
-    /**
-     * Test case for the `setUrlencode` method.
-     */
-    public function testsetUrlencode()
+    public function testSetPrefix(): void
     {
-        $urlencode = false;
+        $this->parsedownToc->setPrefix('/docs/');
 
-        $this->parsedownToc->setUrlencode($urlencode);
-        $this->assertEquals($urlencode, $this->parsedownToc->getOptions()['urlencode']);
+        $output = $this->parsedownToc->text('# Page');
+
+        $this->assertStringContainsString('id="/docs/page"', $output);
     }
 
-    /**
-     * Test case for the `setReservedIds` method.
-     */
-    public function testSetReservedIds()
+    public function testSetTocTag(): void
     {
-        $reservedIds = [
-            'myBlacklistedHeaderId',
-        ];
+        $this->parsedownToc->setTocTag('[nav]');
 
-        $this->parsedownToc->setReservedIds($reservedIds);
-        $this->assertEquals($reservedIds, $this->parsedownToc->getOptions()['reserved_ids']);
+        $output = $this->parsedownToc->text("# Heading\n\n[nav]");
+
+        $this->assertStringContainsString('<div id="toc">', $output);
+        $this->assertStringNotContainsString('<p>[nav]</p>', $output);
     }
 
-    /**
-     * Test case for the `setTocPrefix` method.
-     */
-    public function testSetTocPrefix()
+    public function testSetTocId(): void
     {
-        $prefix = '/docs/page';
+        $this->parsedownToc->setTocId('my-toc');
 
-        $this->parsedownToc->setTocPrefix($prefix);
-        $this->assertEquals($prefix, $this->parsedownToc->getOptions()['prefix']);
+        $output = $this->parsedownToc->text("# Heading\n\n[toc]");
+
+        $this->assertStringContainsString('<div id="my-toc">', $output);
     }
 
-    /**
-     * Test case for the `setTocTag` method.
-     */
-    public function testSetTocTag()
+    public function testSetReplacementsAcceptsNull(): void
     {
-        $tag = 'nav';
+        $this->parsedownToc->setReplacements(null);
 
-        $this->parsedownToc->setTocTag($tag);
-        $this->assertEquals($tag, $this->parsedownToc->getOptions()['toc_tag']);
+        $output = $this->parsedownToc->text('# Test');
+
+        $this->assertStringContainsString('id="test"', $output);
     }
+
+    // -------------------------------------------------------------------------
+    // Fluent chaining
+    // -------------------------------------------------------------------------
+
+    public function testFluentChainingReturnsSelf(): void
+    {
+        $result = $this->parsedownToc->setDelimiter('_');
+
+        $this->assertInstanceOf(ParsedownToc::class, $result);
+    }
+
+    public function testFluentChainingAppliesAllSettings(): void
+    {
+        $output = $this->parsedownToc
+            ->setDelimiter('_')
+            ->setLowercase(false)
+            ->text('# Hello World');
+
+        $this->assertStringContainsString('id="Hello_World"', $output);
+    }
+
+    // -------------------------------------------------------------------------
+    // Validation / guard-clause tests
+    // -------------------------------------------------------------------------
+
+    public function testSetHeadingLevelsThrowsOnInvalidLevel(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parsedownToc->setHeadingLevels(['h7']);
+    }
+
+    public function testSetDelimiterThrowsOnEmptyString(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parsedownToc->setDelimiter('');
+    }
+
+    public function testSetTocTagThrowsOnEmptyString(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parsedownToc->setTocTag('');
+    }
+
+    public function testSetTocIdThrowsOnEmptyString(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->parsedownToc->setTocId('');
+    }
+
+    // -------------------------------------------------------------------------
 
     protected function tearDown(): void
     {
         unset($this->parsedownToc);
     }
 }
+

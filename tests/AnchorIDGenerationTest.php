@@ -29,7 +29,7 @@ class AnchorIDGenerationTest extends TestCase
     public function testAnchorIDDuplicate()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['reserved_ids' => []]); // Ensure no reserved id interference
+        $this->parsedownToc->setReservedIds([]); // Ensure no reserved id interference
 
         $firstCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $secondCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
@@ -46,12 +46,12 @@ class AnchorIDGenerationTest extends TestCase
      * This test verifies that the custom anchor ID generation callback is correctly set and applied.
      * It checks if the generated HTML contains the expected anchor ID based on the custom function.
      */
-    public function testAnchorIDCustomCallback()
+    public function testAnchorIdGenerator()
     {
         $customFunction = function ($text, $options) {
             return mb_strtolower(str_replace(' ', '_', $text));
         };
-        $this->parsedownToc->setCreateAnchorIDCallback($customFunction);
+        $this->parsedownToc->setAnchorIdGenerator($customFunction);
 
         $markdown = "# custom heading";
         $html = $this->parsedownToc->text($markdown);
@@ -69,7 +69,7 @@ class AnchorIDGenerationTest extends TestCase
     public function testAnchorIDReservedIds()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['reserved_ids' => ['heading']]);
+        $this->parsedownToc->setReservedIds(['heading']);
 
         $result = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $this->assertNotEquals('heading', $result);
@@ -90,7 +90,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDHeadingLevels()
     {
-        $this->parsedownToc->setOptions(['heading_levels' => ['h1']]);
+        $this->parsedownToc->setHeadingLevels(['h1']);
 
         $text = "# heading1";
         $this->parsedownToc->text($text);
@@ -108,7 +108,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testExcludedATXHeadingDoesNotConsumeGeneratedID()
     {
-        $this->parsedownToc->setOptions(['heading_levels' => ['h2']]);
+        $this->parsedownToc->setHeadingLevels(['h2']);
 
         $excludedHtml = $this->parsedownToc->text("# heading");
         $includedHtml = $this->parsedownToc->text("## heading");
@@ -123,7 +123,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testExcludedSetextHeadingDoesNotConsumeGeneratedID()
     {
-        $this->parsedownToc->setOptions(['heading_levels' => ['h2']]);
+        $this->parsedownToc->setHeadingLevels(['h2']);
 
         $excludedHtml = $this->parsedownToc->text("heading\n===");
         $includedHtml = $this->parsedownToc->text("heading\n---");
@@ -156,7 +156,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDSanitizeAnchorCustomDelimiter()
     {
-        $this->parsedownToc->setOptions(['delimiter' => '&']);
+        $this->parsedownToc->setDelimiter('&');
 
         $text = "heading with spaces";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
@@ -174,7 +174,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsPrefixOption()
     {
-        $this->parsedownToc->setTocPrefix('md-');
+        $this->parsedownToc->setPrefix('md-');
 
         $html = $this->parsedownToc->text('# Heading');
 

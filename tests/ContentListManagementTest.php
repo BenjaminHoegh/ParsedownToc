@@ -73,26 +73,13 @@ class ContentListManagementTest extends TestCase
 
     public function testContentsListRespectsHeadingIdPrefix()
     {
-        $this->parsedownToc->setTocPrefix('md-');
+        $this->parsedownToc->setPrefix('md-');
 
         $html = $this->parsedownToc->text("# Heading 1");
         $result = $this->parsedownToc->getContentsList();
 
         $this->assertStringContainsString('<h1 id="md-heading-1">Heading 1</h1>', $html);
         $this->assertStringContainsString('<a href="#md-heading-1">Heading 1</a>', $result);
-    }
-
-    public function testContentsListRespectsLimit()
-    {
-        $this->parsedownToc->setTocItemsLimit(1);
-
-        $html = $this->parsedownToc->text("# First\n\n# Second\n\n[toc]");
-        $result = $this->parsedownToc->getContentsList();
-
-        $this->assertStringContainsString('<h1 id="first">First</h1>', $html);
-        $this->assertStringContainsString('<h1 id="second">Second</h1>', $html);
-        $this->assertStringContainsString('<a href="#first">First</a>', $result);
-        $this->assertStringNotContainsString('<a href="#second">Second</a>', $result);
     }
 
     public function testContentsListInvalidType()
