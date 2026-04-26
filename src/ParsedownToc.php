@@ -2,366 +2,350 @@
 
 declare(strict_types=1);
 
-/**
- * This code checks if the class 'ParsedownExtra' exists. If it does, it creates an alias for it called 'ParsedownTocParentAlias'.
- * If 'ParsedownExtra' does not exist, it creates an alias for 'Parsedown' called 'ParsedownTocParentAlias'.
- */
-
-if (class_exists('ParsedownExtra')) {
-    class_alias('ParsedownExtra', 'ParsedownTocParentAlias');
-} else {
-    class_alias('Parsedown', 'ParsedownTocParentAlias');
+if (!class_exists('ParsedownTocParentAlias', false)) {
+    if (class_exists('ParsedownExtra')) {
+        class_alias('ParsedownExtra', 'ParsedownTocParentAlias');
+    } elseif (class_exists('Parsedown')) {
+        class_alias('Parsedown', 'ParsedownTocParentAlias');
+    } else {
+        throw new \LogicException('Parsedown or ParsedownExtra must be installed before ParsedownToc is loaded.');
+    }
 }
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.5';
-    public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
-    public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
-    public const MIN_PHP_VERSION = '7.4';
+    public const VERSION = '2.0.0';
+    public const VERSION_PARSEDOWN_REQUIRED = '1.8.0';
+    public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.9.0';
+    public const MIN_PHP_VERSION = '8.2';
 
-    protected array $options = [];
-    protected array $defaultOptions = array(
-        'selectors' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        'delimiter' => '-',
-        'limit' => null,
-        'lowercase' => true,
-        'replacements' => null,
-        'transliterate' => true,
-        'urlencode' => false,
-        'blacklist' => [],
-        'url' => '',
-        'toc_tag' => '[toc]',
-        'toc_id' => 'toc',
-    );
+    private const ALLOWED_HEADING_LEVELS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
+    /** @var list<string> */
+    private array $headingLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+    private string $delimiter = '-';
+
+    private bool $lowercase = true;
+
+    /** @var array<string, string>|null */
+    private ?array $replacements = null;
+
+    private bool $transliterate = false;
+
+    private bool $urlencode = false;
+
+    /** @var list<string> */
+    private array $reservedIds = [];
+
+    private string $prefix = '';
+
+    private string $tocTag = '[toc]';
+
+    private string $tocId = 'toc';
+
+    /** @var array<string, int> */
     private array $anchorDuplicates = [];
-    private array $contentsListArray = [];
-    private $createAnchorIDCallback = null;
 
+    /** @var array<int, array{id: string, text: string, level: string}> */
+    private array $contentsListArray = [];
+
+    /**
+     * Custom anchor ID generator provided by package users.
+     *
+     * @var ?callable(string, array<string, mixed>): string
+     */
+    /** @psalm-suppress MissingPropertyType */
+    private $anchorIdGenerator = null;
+
+    private ?string $salt = null;
 
     public function __construct()
     {
+        $this->assertRuntimeRequirements();
+        $this->callParentConstructor();
+    }
 
-        // Check if PHP version is supported
-        if (version_compare(PHP_VERSION, self::MIN_PHP_VERSION) < 0) {
-            $msg_error  = 'Version Error.' . PHP_EOL;
-            $msg_error .= '  ParsedownToc requires PHP version ' . self::MIN_PHP_VERSION . ' or later.' . PHP_EOL;
-            $msg_error .= '  - Current version : ' . PHP_VERSION . PHP_EOL;
-            $msg_error .= '  - Required version: ' . self::MIN_PHP_VERSION . PHP_EOL;
-            throw new Exception($msg_error);
-        }
-
-        // Check if Parsedown version is supported
-        if (version_compare(\Parsedown::version, self::VERSION_PARSEDOWN_REQUIRED) < 0) {
-            $msg_error  = 'Version Error.' . PHP_EOL;
-            $msg_error .= '  ParsedownToc requires a later version of Parsedown.' . PHP_EOL;
-            $msg_error .= '  - Current version : ' . \Parsedown::version . PHP_EOL;
-            $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_REQUIRED . ' and later' . PHP_EOL;
-            throw new Exception($msg_error);
-        }
-
-        # If ParsedownExtra is installed, check its version
-        if (class_exists('ParsedownExtra')) {
-            if (version_compare(\ParsedownExtra::version, self::VERSION_PARSEDOWN_EXTRA_REQUIRED) < 0) {
-                $msg_error  = 'Version Error.' . PHP_EOL;
-                $msg_error .= '  ParsedownToc requires a later version of ParsedownExtra.' . PHP_EOL;
-                $msg_error .= '  - Current version : ' . \ParsedownExtra::version . PHP_EOL;
-                $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED . ' and later' . PHP_EOL;
-                throw new Exception($msg_error);
+    /**
+     * @param list<string> $headingLevels
+     */
+    public function setHeadingLevels(array $headingLevels): static
+    {
+        foreach ($headingLevels as $level) {
+            if (!in_array($level, self::ALLOWED_HEADING_LEVELS, true)) {
+                throw new \InvalidArgumentException(sprintf('Invalid heading level "%s".', $level));
             }
-            
-            /** @psalm-suppress DirectConstructorCall */
-            parent::__construct();
         }
 
-        // Initialize default options
-        $this->options = $this->defaultOptions;
+        $this->headingLevels = array_values($headingLevels);
+
+        return $this;
     }
 
-    /**
-     * Set options for the ParsedownToc parser.
-     *
-     * @param array $options The options to set.
-     * @return void
-     */
-    public function setOptions(array $options): void
+    public function setDelimiter(string $delimiter): static
     {
-        $this->options = array_merge($this->options, $options);
-    }
-
-    /**
-     * Set the selectors option.
-     *
-     * @param array $selectors The selectors to set.
-     * @return void
-     */
-    public function setTocSelectors(array $selectors): void
-    {
-        $this->options['selectors'] = $selectors;
-    }
-
-    /**
-     * Set the delimiter option.
-     *
-     * @param string $delimiter The delimiter to set.
-     * @return void
-     */
-    public function setTocDelimiter(string $delimiter): void
-    {
-        $this->options['delimiter'] = $delimiter;
-    }
-
-    /**
-     * Set the limit option.
-     *
-     * @param int|null $limit The limit to set.
-     * @return void
-     */
-    public function setTocLimit(?int $limit): void
-    {
-        $this->options['limit'] = $limit;
-    }
-
-    /**
-     * Set the lowercase option.
-     *
-     * @param bool $lowercase The lowercase option to set.
-     * @return void
-     */
-    public function setTocLowercase(bool $lowercase): void
-    {
-        $this->options['lowercase'] = $lowercase;
-    }
-
-    /**
-     * Set the replacements option.
-     *
-     * @param array|null $replacements The replacements to set.
-     * @return void
-     */
-    public function setTocReplacements(?array $replacements): void
-    {
-        $this->options['replacements'] = $replacements;
-    }
-
-    /**
-     * Set the transliterate option.
-     *
-     * @param bool $transliterate The transliterate option to set.
-     * @return void
-     */
-    public function setTocTransliterate(bool $transliterate): void
-    {
-        $this->options['transliterate'] = $transliterate;
-    }
-
-    /**
-     * Set the urlencode option.
-     *
-     * @param bool $urlencode The urlencode option to set.
-     * @return void
-     */
-    public function setTocUrlencode(bool $urlencode): void
-    {
-        $this->options['urlencode'] = $urlencode;
-    }
-
-    /**
-     * Set the blacklist option.
-     *
-     * @param array $blacklist The blacklist to set.
-     * @return void
-     */
-    public function setTocBlacklist(array $blacklist): void
-    {
-        $this->options['blacklist'] = $blacklist;
-    }
-
-    /**
-     * Set the url option.
-     *
-     * @param string $url The url to set.
-     * @return void
-     */
-    public function setTocUrl(string $url): void
-    {
-        $this->options['url'] = $url;
-    }
-
-    /**
-     * Set the toc_tag option.
-     *
-     * @param string $toc_tag The toc_tag to set.
-     * @return void
-     */
-    public function setTocTag(string $toc_tag): void
-    {
-        $this->options['toc_tag'] = $toc_tag;
-    }
-
-    /**
-     * Set the toc_id option.
-     *
-     * @param string $toc_id The toc_id to set.
-     * @return void
-     */
-    public function setTocId(string $toc_id): void
-    {
-        $this->options['toc_id'] = $toc_id;
-    }
-
-
-    /**
-     * Returns the options of the ParsedownToc object.
-     *
-     * @return array The options of the ParsedownToc object.
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * Heading process.
-     * Creates heading block element and stores to the ToC list. It overrides
-     * the parent method: \Parsedown::blockHeader() and returns $Block array if
-     * the $Line is a heading element.
-     *
-     * @param  array $Line  Array that Parsedown detected as a block type element.
-     * @return void|array   Array of Heading Block.
-     */
-    protected function blockHeader($Line)
-    {
-        // Use parent blockHeader method to process the $Line to $Block
-        $Block = parent::blockHeader($Line);
-
-        if (!empty($Block)) {
-            $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
-            $level = $Block['element']['name'];
-
-            // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'], true)) {
-                return $Block;
-            }
-
-            $attributes = $Block['element']['attributes'] ?? [];
-            $id = $attributes['id'] ?? $this->createAnchorID($text);
-            $attributes['id'] = $id;
-            $Block['element']['attributes'] = $attributes;
-            $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
-
-            return $Block;
+        if ($delimiter === '') {
+            throw new \InvalidArgumentException('Slug delimiter cannot be empty.');
         }
+
+        $this->delimiter = $delimiter;
+
+        return $this;
     }
 
-    /**
-     * Heading process.
-     * Creates heading block element and stores to the ToC list. It overrides
-     * the parent method: \Parsedown::blockSetextHeader() and returns $Block array if
-     * the $Line is a heading element.
-     *
-     * @param  array $Line Array that Parsedown detected as a block type element.
-     * @return void|array Array of Heading Block.
-     */
-    protected function blockSetextHeader($Line, array $Block = null)
+    public function setLowercase(bool $lowercase): static
     {
-        // Use parent blockHeader method to process the $Line to $Block
-        $Block = parent::blockSetextHeader($Line, $Block);
+        $this->lowercase = $lowercase;
 
-        if (!empty($Block)) {
-            $text = $Block['element']['text'] ?? $Block['element']['handler']['argument'] ?? '';
-            $level = $Block['element']['name'];
-
-            // Check if heading level is in the selectors
-            if (!in_array($level, $this->options['selectors'], true)) {
-                return $Block;
-            }
-
-            $attributes = $Block['element']['attributes'] ?? [];
-            $id = $attributes['id'] ?? $this->createAnchorID($text);
-            $attributes['id'] = $id;
-            $Block['element']['attributes'] = $attributes;
-
-            $this->setContentsList(['text' => $text, 'id' => $id, 'level' => $level]);
-
-            return $Block;
-        }
+        return $this;
     }
 
     /**
-     * Parses the given markdown string to an HTML string but it leaves the ToC
-     * tag as is. It's an alias of the parent method "\parent::text()".
-     *
-     * @param  string $text  Markdown string to be parsed.
-     * @return string        Parsed HTML string.
+     * @param array<string, string>|null $replacements
      */
+    public function setReplacements(?array $replacements): static
+    {
+        $this->replacements = $replacements;
+
+        return $this;
+    }
+
+    public function setTransliterate(bool $transliterate): static
+    {
+        $this->transliterate = $transliterate;
+
+        return $this;
+    }
+
+    public function setUrlencode(bool $urlencode): static
+    {
+        $this->urlencode = $urlencode;
+
+        return $this;
+    }
+
+    /**
+     * @param list<string> $reservedIds
+     */
+    public function setReservedIds(array $reservedIds): static
+    {
+        $this->reservedIds = array_values($reservedIds);
+
+        return $this;
+    }
+
+    public function setTocPrefix(string $prefix): static
+    {
+        $this->prefix = $prefix;
+
+        return $this;
+    }
+
+    public function setTocTag(string $tocTag): static
+    {
+        if ($tocTag === '') {
+            throw new \InvalidArgumentException('TOC tag cannot be empty.');
+        }
+
+        $this->tocTag = $tocTag;
+
+        return $this;
+    }
+
+    public function setTocId(string $tocId): static
+    {
+        if ($tocId === '') {
+            throw new \InvalidArgumentException('TOC ID cannot be empty.');
+        }
+
+        $this->tocId = $tocId;
+
+        return $this;
+    }
+
+    /**
+     * Parsedown override.
+     *
+     * Parameter is intentionally untyped to remain compatible with Parsedown.
+     */
+    /** @psalm-suppress MissingParamType */
+    #[\Override]
+    protected function blockHeader($Line): ?array
+    {
+        $block = parent::blockHeader($Line);
+
+        return is_array($block) ? $this->processHeadingBlock($block) : null;
+    }
+
+    /**
+     * Parsedown override.
+     *
+     * Parameter $Line is intentionally untyped to remain compatible with Parsedown.
+     */
+
+    /** @psalm-suppress MissingParamType */
+    #[\Override]
+    protected function blockSetextHeader($Line, ?array $Block = null): ?array
+    {
+        $block = parent::blockSetextHeader($Line, $Block);
+
+        return is_array($block) ? $this->processHeadingBlock($block) : null;
+    }
+
     public function body(string $text): string
     {
-        $text = $this->encodeTagToHash($text);   // Escapes ToC tag temporary
-        $html = parent::text($text);      // Parses the markdown text
-        $html = $this->decodeTagFromHash($html); // Unescape the ToC tag
+        $this->resetParserState();
 
-        return $html;
+        return $this->renderMarkdown($text);
     }
 
     /**
-     * Returns the parsed ToC.
-     * If the arg is "string" then it returns the ToC in HTML string.
-     *
-     * @param  string $type_return Type of the return format. "string" or "json".
-     * @return string|array HTML/JSON string of ToC.
+     * @return string|array<int, array{id: string, text: string, level: string}>
      */
-    public function contentsList(string $type_return = 'html')
+    public function getContentsList(string $returnType = 'html'): string|array
     {
-        switch (strtolower($type_return)) {
-            case 'string':
-            case 'html':
-                return $this->renderContentsListHtml();
-
-            case 'json':
-                try {
-                    return json_encode($this->contentsListArray, JSON_THROW_ON_ERROR);
-                } catch (\JsonException $exception) {
-                    throw new RuntimeException('Failed to encode table of contents as JSON.', 0, $exception);
-                }
-
-            case 'array':
-                return $this->contentsListArray;
-
-            default:
-                $backtrace = debug_backtrace();
-                $caller = $backtrace[0];
-                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
-                throw new InvalidArgumentException($errorMessage);
-        }
+        return match (strtolower($returnType)) {
+            'string', 'html' => $this->renderContentsListHtml(),
+            'json' => $this->renderContentsListJson(),
+            'array' => $this->contentsListArray,
+            default => throw new \InvalidArgumentException(
+                sprintf('Unknown TOC return type "%s". Expected html, string, json, or array.', $returnType)
+            ),
+        };
     }
 
-    protected function renderContentsListHtml(): string
+    /**
+     * Set custom anchor ID generation logic.
+     *
+     * The generator receives the heading text and current options and must return
+     * the desired anchor ID string. The developer is fully responsible for slug
+     * formatting, prefix, casing, and sanitization. ParsedownToc only guarantees
+     * that the returned value will be made unique across the document.
+     *
+     * @param callable(string, array<string, mixed>): string $anchorIdGenerator
+     */
+    public function setAnchorIdGenerator(callable $anchorIdGenerator): static
     {
-        if (empty($this->contentsListArray)) {
+        $this->anchorIdGenerator = $anchorIdGenerator;
+
+        return $this;
+    }
+
+    /**
+     * Parsedown override.
+     *
+     * Parameter is intentionally untyped to remain compatible with Parsedown.
+     */
+    /** @psalm-suppress MissingParamType */
+    #[\Override]
+    public function text($text): string
+    {
+        if (!is_string($text)) {
+            throw new \TypeError(sprintf('%s::text() expects parameter 1 to be string.', self::class));
+        }
+
+        $this->resetParserState();
+
+        $html = $this->renderMarkdown($text);
+        $tocTag = $this->getTocTag();
+
+        if (!str_contains($text, $tocTag)) {
+            return $html;
+        }
+
+        $tocHtml = $this->renderContentsListHtml();
+        $tocId = htmlspecialchars($this->getTocIdAttribute(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $needle = '<p>' . $tocTag . '</p>';
+        $replacement = sprintf('<div id="%s">%s</div>', $tocId, $tocHtml);
+
+        return str_replace($needle, $replacement, $html);
+    }
+
+    /**
+     * @param array<string, mixed> $block
+     * @return array<string, mixed>|null
+     */
+    private function processHeadingBlock(array $block): ?array
+    {
+        if ($block === []) {
+            return null;
+        }
+
+        $element = $block['element'] ?? null;
+
+        if (!is_array($element)) {
+            return $block;
+        }
+
+        $level = $element['name'] ?? null;
+
+        if (!is_string($level) || !in_array($level, $this->headingLevels, true)) {
+            return $block;
+        }
+
+        $text = $this->extractHeadingText($element);
+        $attributes = $element['attributes'] ?? [];
+
+        if (!is_array($attributes)) {
+            $attributes = [];
+        }
+
+        $hasCustomId = isset($attributes['id']);
+        $id = $hasCustomId
+            ? $this->normalizeCustomAnchorId((string) $attributes['id'])
+            : $this->createAnchorID($text);
+
+        if ($hasCustomId) {
+            $this->reserveAnchorID($id);
+        }
+
+        $attributes['id'] = $id;
+        $block['element']['attributes'] = $attributes;
+
+        $this->setContentsList([
+            'text' => $text,
+            'id' => $id,
+            'level' => $level,
+        ]);
+
+        return $block;
+    }
+
+    /**
+     * @param array<string, mixed> $element
+     */
+    private function extractHeadingText(array $element): string
+    {
+        $text = $element['text'] ?? $element['handler']['argument'] ?? '';
+
+        return is_scalar($text) ? (string) $text : '';
+    }
+
+    private function renderContentsListHtml(): string
+    {
+        if ($this->contentsListArray === []) {
             return '';
         }
 
         $tree = [];
         $stack = [];
 
-        foreach ($this->contentsListArray as $Content) {
-            $level = (int) trim($Content['level'], 'h');
+        foreach ($this->contentsListArray as $content) {
+            $level = (int) trim($content['level'], 'h');
 
             $node = [
-                'content' => $Content,
+                'content' => $content,
                 'children' => [],
             ];
 
-            while (!empty($stack) && $stack[array_key_last($stack)]['level'] >= $level) {
+            while ($stack !== [] && $stack[array_key_last($stack)]['level'] >= $level) {
                 array_pop($stack);
             }
 
-            if (empty($stack)) {
+            if ($stack === []) {
                 $tree[] = $node;
-
                 $lastIndex = array_key_last($tree);
+
                 $stack[] = [
                     'level' => $level,
                     'node' => &$tree[$lastIndex],
@@ -374,8 +358,8 @@ class ParsedownToc extends ParsedownTocParentAlias
             $parent = &$stack[$parentIndex]['node'];
 
             $parent['children'][] = $node;
-
             $childIndex = array_key_last($parent['children']);
+
             $stack[] = [
                 'level' => $level,
                 'node' => &$parent['children'][$childIndex],
@@ -387,121 +371,154 @@ class ParsedownToc extends ParsedownTocParentAlias
         return $this->renderContentsListNodes($tree);
     }
 
-
-    protected function renderContentsListNodes(array $nodes): string
+    /**
+     * @param array<int, array{content: array{id: string, text: string, level: string}, children: list}> $nodes
+     */
+    private function renderContentsListNodes(array $nodes): string
     {
-        if (empty($nodes)) {
+        if ($nodes === []) {
             return '';
         }
 
         $html = '<ul>' . PHP_EOL;
 
         foreach ($nodes as $node) {
-            $Content = $node['content'];
+            $content = $node['content'];
 
-            $text = $this->fetchText($Content['text']);
-            $id = (string) $Content['id'];
-            $level = (int) trim($Content['level'], 'h');
-
-            $href = $this->options['url'] . '#' . $id;
+            $text = $this->fetchText($content['text']);
+            $id = $content['id'];
+            $href = '#' . $id;
 
             $html .= sprintf(
-                '<li class="toc-level-%d"><a href="%s">%s</a>',
-                $level,
+                '<li><a href="%s">%s</a>',
                 htmlspecialchars($href, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
                 htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             );
 
-            if (!empty($node['children'])) {
+            if ($node['children'] !== []) {
                 $html .= PHP_EOL . $this->renderContentsListNodes($node['children']);
             }
 
             $html .= '</li>' . PHP_EOL;
         }
 
-        $html .= '</ul>' . PHP_EOL;
-
-        return $html;
+        return $html . '</ul>' . PHP_EOL;
     }
 
-    /**
-     * Allows users to define their own logic for createAnchorID.
-     */
-    public function setCreateAnchorIDCallback(callable $callback): void
+    private function createAnchorID(string $text): string
     {
-        $this->createAnchorIDCallback = $callback;
-    }
-
-
-    /**
-     * Creates an anchor ID for the given text.
-     *
-     * If a callback is provided, it uses the user-defined logic to create the anchor ID.
-     * Otherwise, it uses the default logic which involves normalizing the string, replacing characters, and sanitizing the anchor.
-     *
-     * @param  string $text The text for which to create the anchor ID.
-     * @return string The created anchor ID.
-     */
-    protected function createAnchorID($text): string
-    {
-        // Use user-defined logic if a callback is provided
-        if (is_callable($this->createAnchorIDCallback)) {
-            return call_user_func($this->createAnchorIDCallback, $text, $this->options);
+        if ($this->anchorIdGenerator !== null) {
+            return (string) call_user_func($this->anchorIdGenerator, $text, $this->buildOptionsSnapshot());
         }
 
-        if ($this->options['urlencode']) {
-            $text = urlencode($text);
-            // Check AnchorID is unique
-            return $this->uniquifyAnchorID($text);
-        }
-
-        // Lowercase the string
-        $text = $this->options['lowercase'] ? mb_strtolower($text, 'UTF-8') : $text;
-
-        // Make custom replacements
-        if (!empty($this->options['replacements'])) {
-            $text = preg_replace(array_keys($this->options['replacements']), $this->options['replacements'], $text);
-        }
-
-        // Remove non UTF-8 characters
         $text = $this->normalizeString($text);
 
-        // Transliterate characters to ASCII
-        if ($this->options['transliterate']) {
-            $text = $this->transliterate($text);
+        if ($this->lowercase === true) {
+            $text = mb_strtolower($text, 'UTF-8');
         }
 
-        // Sanitize the anchor
+        if (is_array($this->replacements)) {
+            $text = $this->applyReplacements($text, $this->replacements);
+        }
+
+        if ($this->transliterate === true) {
+            $text = $this->transliterateWithCharacterMap($text);
+
+            if ($this->lowercase === true) {
+                $text = strtolower($text);
+            }
+        }
+
         $text = $this->sanitizeAnchor($text);
 
-        // Truncate slug to max. characters
-        $text = mb_substr($text, 0, ($this->options['limit'] ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
+        if ($this->urlencode === true) {
+            $text = rawurlencode($text);
+        }
 
-        // Check AnchorID is unique
-        $text = $this->uniquifyAnchorID($text);
+        $text = $this->applyAnchorPrefix($text);
+
+        return $this->finalizeAnchorID($text);
+    }
+
+    /**
+     * @param array<string, string> $replacements
+     */
+    private function applyReplacements(string $text, array $replacements): string
+    {
+        foreach ($replacements as $search => $replacement) {
+            if ($this->isRegexPattern($search)) {
+                $result = preg_replace($search, $replacement, $text);
+
+                if ($result === null) {
+                    throw new \InvalidArgumentException(sprintf('Invalid replacement regex pattern "%s".', $search));
+                }
+
+                $text = $result;
+
+                continue;
+            }
+
+            $text = str_replace($search, $replacement, $text);
+        }
 
         return $text;
     }
 
-    /**
-     * Normalize a string by converting it to encoding it to UTF-8.
-     *
-     * @param string $text The string to be normalized.
-     *
-     * @return array|false|string
-     */
-    protected function normalizeString(string $text)
+    private function isRegexPattern(string $pattern): bool
     {
-        return mb_convert_encoding($text, 'UTF-8', mb_list_encodings());
+        if ($pattern === '') {
+            return false;
+        }
+
+        $delimiter = $pattern[0];
+
+        if (ctype_alnum($delimiter) || $delimiter === '\\') {
+            return false;
+        }
+
+        for ($index = strlen($pattern) - 1; $index > 0; $index--) {
+            if ($pattern[$index] !== $delimiter || $pattern[$index - 1] === '\\') {
+                continue;
+            }
+
+            $modifiers = substr($pattern, $index + 1);
+
+            return preg_match('/^[imsxeADSUXJu]*$/', $modifiers) === 1;
+        }
+
+        return false;
     }
 
-    /**
-     * Replaces special characters in a string with their corresponding ASCII equivalents.
-     *
-     * @param  string $text The input string.
-     * @return string The modified string with replaced characters.
-     */
-    protected function transliterate(string $text): string
+    private function finalizeAnchorID(string $text): string
+    {
+        $text = trim($text);
+
+        if ($text === '') {
+            $text = 'section';
+        }
+
+        return $this->uniquifyAnchorID($text);
+    }
+
+    private function normalizeString(string $text): string
+    {
+        return $this->normalizeUnicode($text);
+    }
+
+    private function normalizeUnicode(string $text): string
+    {
+        if (class_exists('\Normalizer')) {
+            $normalized = \Normalizer::normalize($text, \Normalizer::FORM_C);
+
+            if (is_string($normalized)) {
+                return $normalized;
+            }
+        }
+
+        return mb_scrub($text, 'UTF-8');
+    }
+
+    private function transliterateWithCharacterMap(string $text): string
     {
         $characterMap = [
             // Latin
@@ -558,10 +575,8 @@ class ParsedownToc extends ParsedownTocParentAlias
             'ž' => 'z',
 
             // Polish
-            'Ą' => 'A', 'Ć' => 'C', 'Ę' => 'E', 'Ł' => 'L', 'Ń' => 'N', 'Ś' => 'S', 'Ź' => 'Z',
-            'Ż' => 'Z',
-            'ą' => 'a', 'ć' => 'c', 'ę' => 'e', 'ł' => 'l', 'ń' => 'n', 'ś' => 's', 'ź' => 'z',
-            'ż' => 'z',
+            'Ą' => 'A', 'Ć' => 'C', 'Ę' => 'E', 'Ł' => 'L', 'Ń' => 'N', 'Ś' => 'S', 'Ź' => 'Z', 'Ż' => 'Z',
+            'ą' => 'a', 'ć' => 'c', 'ę' => 'e', 'ł' => 'l', 'ń' => 'n', 'ś' => 's', 'ź' => 'z', 'ż' => 'z',
 
             // Latvian
             'Ā' => 'A', 'Ē' => 'E', 'Ģ' => 'G', 'Ī' => 'I', 'Ķ' => 'K', 'Ļ' => 'L', 'Ņ' => 'N', 'Ū' => 'U',
@@ -571,225 +586,227 @@ class ParsedownToc extends ParsedownTocParentAlias
         return strtr($text, $characterMap);
     }
 
-    /**
-     * Sanitizes an anchor text by removing special characters, replacing spaces with dashes,
-     * and removing consecutive dashes.
-     *
-     * @param  string $text The anchor text to sanitize.
-     * @return string The sanitized anchor text.
-     */
-    protected function sanitizeAnchor(string $text): string
+    private function sanitizeAnchor(string $text): string
     {
-        $delimiter = $this->options['delimiter'];
-        // Replace non-alphanumeric characters with our delimiter
-        $text = preg_replace('/[^\p{L}\p{Nd}]+/u', $delimiter, $text);
-        // Remove consecutive delimiters
-        $text = preg_replace('/(' . preg_quote($delimiter, '/') . '){2,}/', '$1', $text);
-        // Remove leading and trailing delimiters
-        $text = trim($text, $delimiter);
-        return $text;
-    }
+        $delimiter = $this->delimiter;
 
-    /**
-     * Generate a unique anchor ID based on the given text.
-     *
-     * @param  string $text The text to generate the anchor ID from.
-     * @return string The unique anchor ID.
-     */
-    protected function uniquifyAnchorID(string $text): string
-    {
-        $blacklist = $this->options['blacklist'];
-
-        // Initialize the count for this text if not already set
-        if (!isset($this->anchorDuplicates[$text])) {
-            $this->anchorDuplicates[$text] = 0;
+        if ($delimiter === '') {
+            throw new \RuntimeException('Slug delimiter cannot be empty.');
         }
 
-        // If the text is not in the blacklist and is the first time we see it, return it as is
-        if (!in_array($text, $blacklist, true) && $this->anchorDuplicates[$text] === 0) {
-            // Increment here to account for the next time we see this text
-            $this->anchorDuplicates[$text]++;
+        $pattern = $this->transliterate === true
+            ? '/[^A-Za-z0-9]+/'
+            : '/[^\p{L}\p{Nd}]+/u';
+
+        $text = $this->safePregReplace($pattern, $delimiter, $text);
+        $text = $this->safePregReplace('/(' . preg_quote($delimiter, '/') . '){2,}/', '$1', $text);
+
+        return trim($text, $delimiter);
+    }
+
+    private function applyAnchorPrefix(string $text): string
+    {
+        $prefix = $this->prefix;
+
+        if ($prefix === '') {
             return $text;
         }
 
-        // For subsequent duplicates, start appending a number starting from 1
-        $originalText = $text;
+        return $prefix . $text;
+    }
 
-        /**
-         * @psalm-suppress all
-         * Workaround for Psalm as UnsupportedPropertyReferenceUsage can't be suppressed
-         */
-        $count = &$this->anchorDuplicates[$originalText];
+    private function uniquifyAnchorID(string $text): string
+    {
+        $reservedIds = $this->reservedIds;
 
-        // Generate a unique anchor ID by appending a count to the original text
-        while (true) {
-            if ($count > 0) {
-                $text = $originalText . '-' . $count;
+        $this->anchorDuplicates[$text] ??= 0;
 
-                if (!in_array($text, $blacklist, true) && !isset($this->anchorDuplicates[$text])) {
-                    break;
-                }
-            }
+        if (!in_array($text, $reservedIds, true) && $this->anchorDuplicates[$text] === 0) {
+            $this->anchorDuplicates[$text] = 1;
 
+            return $text;
+        }
+
+        $baseText = $text;
+        $count = max(1, $this->anchorDuplicates[$baseText]);
+
+        do {
+            $text = sprintf('%s-%d', $baseText, $count);
             $count++;
-        }
+        } while (in_array($text, $reservedIds, true) || isset($this->anchorDuplicates[$text]));
 
-        // Increment the count for the next duplicate
+        $this->anchorDuplicates[$baseText] = $count;
         $this->anchorDuplicates[$text] = 1;
-        $count++;
 
         return $text;
     }
 
-
-
-    /**
-     * Decodes the hashed ToC tag to an original tag and replaces.
-     *
-     * This is used to avoid parsing user defined ToC tag which includes "_" in
-     * their tag such as "[[_]]". Unless it will be parsed as:
-     *   "<p>[[<em>TOC</em>]]</p>"
-     *
-     * @param  string $text
-     * @return string
-     */
-    protected function decodeTagFromHash(string $text): string
+    private function reserveAnchorID(string $id): void
     {
-        $salt = $this->getSalt();
-        $tag_origin = $this->getTocTag();
-        $tag_hashed = hash('sha256', $salt . $tag_origin);
+        $this->anchorDuplicates[$id] ??= 1;
+    }
 
-        if (strpos($text, $tag_hashed) === false) {
+    private function resetParserState(): void
+    {
+        $this->anchorDuplicates = [];
+        $this->contentsListArray = [];
+    }
+
+    private function renderMarkdown(string $text): string
+    {
+        $encodedText = $this->encodeTagToHash($text);
+        $html = parent::text($encodedText);
+
+        return $this->decodeTagFromHash($html);
+    }
+
+    private function decodeTagFromHash(string $text): string
+    {
+        $tocTag = $this->getTocTag();
+        $hashedTag = $this->getHashedTocTag();
+
+        if (!str_contains($text, $hashedTag)) {
             return $text;
         }
 
-        return str_replace($tag_hashed, $tag_origin, $text);
+        return str_replace($hashedTag, $tocTag, $text);
     }
 
-    /**
-     * Encodes the ToC tag to a hashed tag and replace.
-     *
-     * This is used to avoid parsing user defined ToC tag which includes "_" in
-     * their tag such as "[[_]]". Unless it will be parsed as:
-     *   "<p>[[<em>TOC</em>]]</p>"
-     *
-     * @param  string $text
-     * @return string
-     */
-    protected function encodeTagToHash(string $text): string
+    private function encodeTagToHash(string $text): string
     {
-        $salt = $this->getSalt();
-        $tag_origin = $this->getTocTag();
+        $tocTag = $this->getTocTag();
 
-        if (strpos($text, $tag_origin) === false) {
+        if (!str_contains($text, $tocTag)) {
             return $text;
         }
 
-        $tag_hashed = hash('sha256', $salt . $tag_origin);
-
-        return str_replace($tag_origin, $tag_hashed, $text);
+        return str_replace($tocTag, $this->getHashedTocTag(), $text);
     }
 
-    /**
-     * Get only the text from a markdown string.
-     * It parses to HTML once then trims the tags to get the text.
-     *
-     * @param  string $text  Markdown text.
-     * @return string
-     */
-    protected function fetchText(string $text): string
+    private function fetchText(string $text): string
     {
         return trim(strip_tags($this->line($text)));
     }
 
-    /**
-     * Gets the ID attribute of the ToC for HTML tags.
-     *
-     * @return string
-     */
-    protected function getTocIdAttribute(): string
+    private function getTocIdAttribute(): string
     {
-        return $this->options['toc_id'];
+        return $this->tocId;
+    }
+
+    private function getSalt(): string
+    {
+        return $this->salt ??= sha1((string) microtime(true));
+    }
+
+    public function getTocTag(): string
+    {
+        return $this->tocTag;
     }
 
     /**
-     * Unique string to use as a salt value.
-     *
-     * @return string
+     * @param array{id: string, text: string, level: string} $content
      */
-    protected function getSalt(): string
+    private function setContentsList(array $content): void
     {
-        static $salt;
-        if (isset($salt)) {
-            return $salt;
+        $this->contentsListArray[] = $content;
+    }
+
+    private function renderContentsListJson(): string
+    {
+        try {
+            return json_encode($this->contentsListArray, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new \RuntimeException('Failed to encode table of contents as JSON.', 0, $exception);
+        }
+    }
+
+    private function getHashedTocTag(): string
+    {
+        return hash('sha256', $this->getSalt() . $this->getTocTag());
+    }
+
+    private function normalizeCustomAnchorId(string $id): string
+    {
+        $id = $this->normalizeString($id);
+        $id = preg_replace('/[\x00-\x1F\x7F]/u', '', $id);
+
+        if ($id === null || trim($id) === '') {
+            return $this->finalizeAnchorID('section');
         }
 
-        $salt = hash('md5', strval(time()));
-        return $salt;
+        return trim($id);
     }
 
-    /**
-     * Gets the markdown tag for ToC.
-     *
-     * @return string
-     */
-    protected function getTocTag(): string
+    private function safePregReplace(string $pattern, string $replacement, string $subject): string
     {
-        return $this->options['toc_tag'];
-    }
+        $result = preg_replace($pattern, $replacement, $subject);
 
-    /**
-     * Set/stores the heading block to ToC list in a string and array format.
-     *
-     * @param  array $Content   Heading info such as "level","id" and "text".
-     * @return void
-     */
-    protected function setContentsList(array $Content): void
-    {
-        $this->setContentsListAsArray($Content);
-    }
-
-    /**
-     * Sets/stores the heading block info as an array.
-     *
-     * @param  array $Content
-     * @return void
-     */
-    protected function setContentsListAsArray(array $Content): void
-    {
-        $this->contentsListArray[] = $Content;
-    }
-
-    /**
-     * Parses markdown string to HTML and also the "[toc]" tag as well.
-     * It overrides the parent method: \Parsedown::text().
-     *
-     * @param  string $text
-     * @return string
-     */
-    public function text($text): string
-    {
-        // Parses the markdown text except the ToC tag. This also searches
-        // the list of contents and available to get from "contentsList()"
-        // method.
-        $html = $this->body($text);
-
-        $tag_origin = $this->getTocTag();
-
-        if (strpos($text, $tag_origin) === false) {
-            return $html;
+        if ($result === null) {
+            throw new \RuntimeException(sprintf('Regex replacement failed for pattern "%s".', $pattern));
         }
 
-        $data = $this->contentsList();
-        $toc_id = htmlspecialchars(
-            (string) $this->getTocIdAttribute(),
-            ENT_QUOTES | ENT_SUBSTITUTE,
-            'UTF-8'
-        );
-
-        $needle = '<p>' . $tag_origin . '</p>';
-        $replace = "<div id=\"{$toc_id}\">{$data}</div>";
-
-        return str_replace($needle, $replace, $html);
+        return $result;
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildOptionsSnapshot(): array
+    {
+        return [
+            'heading_levels' => $this->headingLevels,
+            'delimiter'      => $this->delimiter,
+            'lowercase'      => $this->lowercase,
+            'replacements'   => $this->replacements,
+            'transliterate'  => $this->transliterate,
+            'urlencode'      => $this->urlencode,
+            'reserved_ids'   => $this->reservedIds,
+            'prefix'         => $this->prefix,
+            'toc_tag'        => $this->tocTag,
+            'toc_id'         => $this->tocId,
+        ];
+    }
+
+    private function assertRuntimeRequirements(): void
+    {
+        if (version_compare(PHP_VERSION, self::MIN_PHP_VERSION, '<')) {
+            throw new \RuntimeException(sprintf(
+                'ParsedownToc requires PHP %s or later. Current version: %s.',
+                self::MIN_PHP_VERSION,
+                PHP_VERSION
+            ));
+        }
+
+        if (version_compare(\Parsedown::version, self::VERSION_PARSEDOWN_REQUIRED, '<')) {
+            throw new \RuntimeException(sprintf(
+                'ParsedownToc requires Parsedown %s or later. Current version: %s.',
+                self::VERSION_PARSEDOWN_REQUIRED,
+                \Parsedown::version
+            ));
+        }
+
+        if (
+            class_exists('ParsedownExtra')
+            && version_compare(\ParsedownExtra::version, self::VERSION_PARSEDOWN_EXTRA_REQUIRED, '<')
+        ) {
+            throw new \RuntimeException(sprintf(
+                'ParsedownToc requires ParsedownExtra %s or later. Current version: %s.',
+                self::VERSION_PARSEDOWN_EXTRA_REQUIRED,
+                \ParsedownExtra::version
+            ));
+        }
+    }
+
+    private function callParentConstructor(): void
+    {
+        $parentClass = get_parent_class($this);
+
+        if (!is_string($parentClass) || !method_exists($parentClass, '__construct')) {
+            return;
+        }
+
+        $constructor = new \ReflectionMethod($parentClass, '__construct');
+        $constructor->invoke($this);
+    }
+
 }
