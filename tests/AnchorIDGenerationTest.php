@@ -93,12 +93,12 @@ class AnchorIDGenerationTest extends TestCase
 
         $text = "# heading1";
         $this->parsedownToc->text($text);
-        $result = $this->parsedownToc->contentsList('html');
+        $result = $this->parsedownToc->getContentsList('html');
         $this->assertStringContainsString('<a href="#heading1">heading1</a>', $result);
 
         $text = "## heading2";
         $this->parsedownToc->text($text);
-        $result = $this->parsedownToc->contentsList('html');
+        $result = $this->parsedownToc->getContentsList('html');
         $this->assertStringNotContainsString('<a href="#heading2">heading2</a>', $result);
     }
 
@@ -155,7 +155,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDSanitizeAnchorCustomDelimiter()
     {
-        $this->parsedownToc->setOptions(['slug_delimiter' => '&']);
+        $this->parsedownToc->setOptions(['delimiter' => '&']);
 
         $text = "heading with spaces";
         $result = $this->invokeMethod($this->parsedownToc, 'sanitizeAnchor', [$text]);
@@ -164,7 +164,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsLowercaseOption()
     {
-        $this->parsedownToc->setSlugLowercase(false);
+        $this->parsedownToc->setLowercase(false);
 
         $html = $this->parsedownToc->text('# Mixed Case');
 
@@ -182,7 +182,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsReplacements()
     {
-        $this->parsedownToc->setSlugReplacements(['cat' => 'dog']);
+        $this->parsedownToc->setReplacements(['cat' => 'dog']);
 
         $html = $this->parsedownToc->text('# cat nap');
 
@@ -191,7 +191,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsRegexReplacements()
     {
-        $this->parsedownToc->setSlugReplacements(['/cat/' => 'dog']);
+        $this->parsedownToc->setReplacements(['/cat/' => 'dog']);
 
         $html = $this->parsedownToc->text('# cat nap');
 
@@ -200,7 +200,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsTransliteration()
     {
-        $this->parsedownToc->setSlugTransliterate(true);
+        $this->parsedownToc->setTransliterate(true);
 
         $html = $this->parsedownToc->text('# Über');
 
@@ -209,7 +209,7 @@ class AnchorIDGenerationTest extends TestCase
 
     public function testAnchorIDRespectsUrlencodeOption()
     {
-        $this->parsedownToc->setSlugUrlencode(true);
+        $this->parsedownToc->setUrlencode(true);
 
         $html = $this->parsedownToc->text('# Heading Here');
 

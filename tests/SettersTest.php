@@ -42,14 +42,14 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setSlugDelimiter` method.
+     * Test case for the `setDelimiter` method.
      */
-    public function testSetSlugDelimiter()
+    public function testsetDelimiter()
     {
         $delimiter = '&';
 
-        $this->parsedownToc->setSlugDelimiter($delimiter);
-        $this->assertEquals($delimiter, $this->parsedownToc->getOptions()['slug_delimiter']);
+        $this->parsedownToc->setDelimiter($delimiter);
+        $this->assertEquals($delimiter, $this->parsedownToc->getOptions()['delimiter']);
     }
 
     /**
@@ -64,49 +64,49 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setSlugLowercase` method.
+     * Test case for the `setLowercase` method.
      */
-    public function testSetSlugLowercase()
+    public function testsetLowercase()
     {
         $lowercase = false;
 
-        $this->parsedownToc->setSlugLowercase($lowercase);
-        $this->assertEquals($lowercase, $this->parsedownToc->getOptions()['slug_lowercase']);
+        $this->parsedownToc->setLowercase($lowercase);
+        $this->assertEquals($lowercase, $this->parsedownToc->getOptions()['lowercase']);
     }
 
     /**
-     * Test case for the `setSlugReplacements` method.
+     * Test case for the `setReplacements` method.
      */
-    public function testSetSlugReplacements()
+    public function testsetReplacements()
     {
         $replacements = [
             'BadKitty' => '-',
         ];
 
-        $this->parsedownToc->setSlugReplacements($replacements);
-        $this->assertEquals($replacements, $this->parsedownToc->getOptions()['slug_replacements']);
+        $this->parsedownToc->setReplacements($replacements);
+        $this->assertEquals($replacements, $this->parsedownToc->getOptions()['replacements']);
     }
 
     /**
-     * Test case for the `setSlugTransliterate` method.
+     * Test case for the `setTransliterate` method.
      */
-    public function testSetSlugTransliterate()
+    public function testsetTransliterate()
     {
         $transliterate = false;
 
-        $this->parsedownToc->setSlugTransliterate($transliterate);
-        $this->assertEquals($transliterate, $this->parsedownToc->getOptions()['slug_transliterate']);
+        $this->parsedownToc->setTransliterate($transliterate);
+        $this->assertEquals($transliterate, $this->parsedownToc->getOptions()['transliterate']);
     }
 
     /**
-     * Test case for the `setSlugUrlencode` method.
+     * Test case for the `setUrlencode` method.
      */
-    public function testSetSlugUrlencode()
+    public function testsetUrlencode()
     {
         $urlencode = false;
 
-        $this->parsedownToc->setSlugUrlencode($urlencode);
-        $this->assertEquals($urlencode, $this->parsedownToc->getOptions()['slug_urlencode']);
+        $this->parsedownToc->setUrlencode($urlencode);
+        $this->assertEquals($urlencode, $this->parsedownToc->getOptions()['urlencode']);
     }
 
     /**

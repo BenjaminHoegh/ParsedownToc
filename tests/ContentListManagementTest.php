@@ -16,12 +16,12 @@ class ContentListManagementTest extends TestCase
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
         $this->parsedownToc->text($markdown); // Process markdown to generate TOC
-        $result = $this->parsedownToc->contentsList('string');
+        $result = $this->parsedownToc->getContentsList('string');
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
         
         // Also check that we can use html as an alias for string
-        $result = $this->parsedownToc->contentsList('html');
+        $result = $this->parsedownToc->getContentsList('html');
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
     }
@@ -30,7 +30,7 @@ class ContentListManagementTest extends TestCase
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
         $this->parsedownToc->text($markdown); // Process markdown to generate TOC
-        $result = $this->parsedownToc->contentsList('json');
+        $result = $this->parsedownToc->getContentsList('json');
         $this->assertIsString($result);
         $this->assertJson($result);
     }
@@ -49,14 +49,14 @@ class ContentListManagementTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to encode table of contents as JSON.');
 
-        $this->parsedownToc->contentsList('json');
+        $this->parsedownToc->getContentsList('json');
     }
     
     public function testContentsListArray()
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
         $this->parsedownToc->text($markdown); // Process markdown to generate TOC
-        $result = $this->parsedownToc->contentsList('array');
+        $result = $this->parsedownToc->getContentsList('array');
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
     }
@@ -65,7 +65,7 @@ class ContentListManagementTest extends TestCase
     {
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
         $this->parsedownToc->text($markdown); // Process markdown to generate TOC
-        $result = $this->parsedownToc->contentsList();
+        $result = $this->parsedownToc->getContentsList();
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
     }
@@ -75,7 +75,7 @@ class ContentListManagementTest extends TestCase
         $this->parsedownToc->setTocPrefix('md-');
 
         $html = $this->parsedownToc->text("# Heading 1");
-        $result = $this->parsedownToc->contentsList();
+        $result = $this->parsedownToc->getContentsList();
 
         $this->assertStringContainsString('<h1 id="md-heading-1">Heading 1</h1>', $html);
         $this->assertStringContainsString('<a href="#md-heading-1">Heading 1</a>', $result);
@@ -86,7 +86,7 @@ class ContentListManagementTest extends TestCase
         $this->parsedownToc->setTocItemsLimit(1);
 
         $html = $this->parsedownToc->text("# First\n\n# Second\n\n[toc]");
-        $result = $this->parsedownToc->contentsList();
+        $result = $this->parsedownToc->getContentsList();
 
         $this->assertStringContainsString('<h1 id="first">First</h1>', $html);
         $this->assertStringContainsString('<h1 id="second">Second</h1>', $html);
@@ -99,16 +99,16 @@ class ContentListManagementTest extends TestCase
         $markdown = "Some content\n\n# Heading 1\n\n## Heading 1.1\n\n# Heading 2\n\n## Heading 2.1";
         $this->parsedownToc->text($markdown); // Process markdown to generate TOC
         $this->expectException(InvalidArgumentException::class);
-        $this->parsedownToc->contentsList('invalid');
+        $this->parsedownToc->getContentsList('invalid');
     }
 
     public function testTextResetsParserStateBetweenDocuments()
     {
         $firstHtml = $this->parsedownToc->text("# Heading");
-        $firstContents = $this->parsedownToc->contentsList('array');
+        $firstContents = $this->parsedownToc->getContentsList('array');
 
         $secondHtml = $this->parsedownToc->text("# Heading");
-        $secondContents = $this->parsedownToc->contentsList('array');
+        $secondContents = $this->parsedownToc->getContentsList('array');
 
         $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $firstHtml);
         $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $secondHtml);
@@ -119,10 +119,10 @@ class ContentListManagementTest extends TestCase
     public function testBodyResetsParserStateBetweenDocuments()
     {
         $firstHtml = $this->parsedownToc->body("# Heading");
-        $firstContents = $this->parsedownToc->contentsList('array');
+        $firstContents = $this->parsedownToc->getContentsList('array');
 
         $secondHtml = $this->parsedownToc->body("# Heading");
-        $secondContents = $this->parsedownToc->contentsList('array');
+        $secondContents = $this->parsedownToc->getContentsList('array');
 
         $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $firstHtml);
         $this->assertStringContainsString('<h1 id="heading">Heading</h1>', $secondHtml);
