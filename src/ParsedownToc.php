@@ -55,7 +55,6 @@ class ParsedownToc extends ParsedownTocParentAlias
      *
      * @var ?callable(string, array<string, mixed>): string
      */
-    /** @psalm-suppress MissingPropertyType */
     private $anchorIdGenerator = null;
 
     private ?string $salt = null;
