@@ -555,11 +555,11 @@ class ParsedownToc extends ParsedownTocParentAlias
         if ($this->options['anchor_prefix'] !== '') {
             $text = $this->options['anchor_prefix'] . $text;
         }
-        
+
         // Check AnchorID is unique
         $text = $this->uniquifyAnchorID($text);
 
-        
+
         return $text;
     }
 
