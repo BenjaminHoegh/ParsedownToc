@@ -314,6 +314,11 @@ class ParsedownToc extends ParsedownTocParentAlias
                 return $Block;
             }
 
+            // If the heading text is empty, do not generate an anchor ID and do not add it to the ToC list
+            if (mb_strlen($text, 'UTF-8') === 0) {
+                return $Block;
+            }
+
             $attributes = $Block['element']['attributes'] ?? [];
             $id = $attributes['id'] ?? $this->createAnchorID($text);
             $attributes['id'] = $id;
@@ -344,6 +349,11 @@ class ParsedownToc extends ParsedownTocParentAlias
 
             // Check if heading level is in the selectors
             if (!in_array($level, $this->options['selectors'], true)) {
+                return $Block;
+            }
+
+            // If the heading text is empty, do not generate an anchor ID and do not add it to the ToC list
+            if (mb_strlen($text, 'UTF-8') === 0) {
                 return $Block;
             }
 
