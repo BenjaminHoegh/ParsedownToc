@@ -120,6 +120,9 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     public function setTocLimit(?int $limit): void
     {
+        if ($limit !== null && $limit <= 0) {
+            throw new \InvalidArgumentException('Limit must be null or a positive integer, got ' . $limit . '.');
+        }
         $this->options['limit'] = $limit;
     }
 
@@ -330,9 +333,9 @@ class ParsedownToc extends ParsedownTocParentAlias
                 return $this->contentsListArray;
 
             default:
-                $backtrace = debug_backtrace();
-                $caller = $backtrace[0];
-                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+                $caller = $backtrace[1] ?? $backtrace[0];
+                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . ($caller['file'] ?? 'unknown') . " on line " . ($caller['line'] ?? 'unknown');
                 throw new InvalidArgumentException($errorMessage);
         }
     }
@@ -474,8 +477,13 @@ class ParsedownToc extends ParsedownTocParentAlias
         // Sanitize the anchor
         $text = $this->sanitizeAnchor($text);
 
+        // Fall back to 'section' if sanitization produced an empty string
+        if ($text === '') {
+            $text = 'section';
+        }
+
         // Truncate slug to max. characters
-        $text = mb_substr($text, 0, ($this->options['limit'] ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
+        $text = mb_substr($text, 0, ($this->options['limit'] !== null ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
 
         // Check AnchorID is unique
         $text = $this->uniquifyAnchorID($text);
@@ -622,9 +630,10 @@ class ParsedownToc extends ParsedownTocParentAlias
         $count = &$this->anchorDuplicates[$originalText];
 
         // Generate a unique anchor ID by appending a count to the original text
+        $delimiter = $this->options['delimiter'];
         while (true) {
             if ($count > 0) {
-                $text = $originalText . '-' . $count;
+                $text = $originalText . $delimiter . $count;
 
                 if (!in_array($text, $blacklist, true) && !isset($this->anchorDuplicates[$text])) {
                     break;
