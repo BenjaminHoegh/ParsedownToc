@@ -7,12 +7,11 @@
 # ParsedownToc
 
 ![GitHub release](https://img.shields.io/github/release/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
+![Packagist Downloads](https://img.shields.io/packagist/dt/benjaminhoegh/parsedown-toc)
 ![GitHub](https://img.shields.io/github/license/BenjaminHoegh/ParsedownToc.svg?style=flat-square)
 
 **ParsedownToc** is an extension for Parsedown and ParsedownExtra that introduces advanced features for developers working with Markdown. It is based on [@KEINOS toc extention](https://github.com/KEINOS/parsedown-extension_table-of-contents)
 
-> [!NOTE]
-> Does not yet include the latest changes in ParsedownExtended v1.2.0
 
 ## Features:
 
