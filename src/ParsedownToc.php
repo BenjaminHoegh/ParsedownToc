@@ -15,13 +15,13 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.5';
+    public const VERSION = '1.6.0';
     public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
     public const MIN_PHP_VERSION = '7.4';
 
     protected array $options = [];
-    protected array $defaultOptions = array(
+    protected array $defaultOptions = [
         'selectors' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'delimiter' => '-',
         'limit' => null,
@@ -33,7 +33,7 @@ class ParsedownToc extends ParsedownTocParentAlias
         'url' => '',
         'toc_tag' => '[toc]',
         'toc_id' => 'toc',
-    );
+    ];
 
     private array $anchorDuplicates = [];
     private array $contentsListArray = [];
@@ -70,7 +70,7 @@ class ParsedownToc extends ParsedownTocParentAlias
                 $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED . ' and later' . PHP_EOL;
                 throw new Exception($msg_error);
             }
-            
+
             /** @psalm-suppress DirectConstructorCall */
             parent::__construct();
         }
@@ -264,7 +264,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Line Array that Parsedown detected as a block type element.
      * @return void|array Array of Heading Block.
      */
-    protected function blockSetextHeader($Line, array $Block = null)
+    protected function blockSetextHeader($Line, ?array $Block = null)
     {
         // Use parent blockHeader method to process the $Line to $Block
         $Block = parent::blockSetextHeader($Line, $Block);

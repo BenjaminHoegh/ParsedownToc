@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 class SettersTest extends TestCase
 {
     protected $parsedownToc;
-    
+
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -28,7 +28,7 @@ class SettersTest extends TestCase
     /**
      * Test case for the `setTocSelectors` method.
      */
-    public function testSetTocSelectors() 
+    public function testSetTocSelectors()
     {
         $selectors = [
             'h1' => 'h1',
