@@ -9,7 +9,7 @@ return (new Config())
     ->setRiskyAllowed(false)
     ->setRules([
         '@PSR12' => true,
-        '@PHP8x2Migration' => true,
+        '@PHP7x4Migration' => true,
     ])
     ->setFinder(
         (new Finder())

@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 class SettersTest extends TestCase
 {
     protected $parsedownToc;
-    
+
     protected function setUp(): void
     {
         $this->parsedownToc = new ParsedownToc();
@@ -28,7 +28,7 @@ class SettersTest extends TestCase
     /**
      * Test case for the `setTocSelectors` method.
      */
-    public function testSetTocSelectors() 
+    public function testSetTocSelectors()
     {
         $selectors = [
             'h1' => 'h1',
@@ -53,14 +53,37 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setTocLimit` method.
+     * Test case for the `setTocLimit` method (deprecated; proxies to setTocMaxAnchorLength).
      */
     public function testSetTocLimit()
     {
         $limit = 3;
 
         $this->parsedownToc->setTocLimit($limit);
-        $this->assertEquals($limit, $this->parsedownToc->getOptions()['limit']);
+        $this->assertEquals($limit, $this->parsedownToc->getOptions()['max_anchor_length']);
+    }
+
+    /**
+     * Test case for the `setTocMaxAnchorLength` method.
+     */
+    public function testSetTocMaxAnchorLength()
+    {
+        $length = 5;
+
+        $this->parsedownToc->setTocMaxAnchorLength($length);
+        $this->assertEquals($length, $this->parsedownToc->getOptions()['max_anchor_length']);
+    }
+
+    /**
+     * Test that setOptions() migrates the legacy 'limit' key to 'max_anchor_length'.
+     */
+    public function testSetOptionsLegacyLimitKey()
+    {
+        $this->parsedownToc->setOptions(['limit' => 10]);
+        $options = $this->parsedownToc->getOptions();
+
+        $this->assertEquals(10, $options['max_anchor_length']);
+        $this->assertArrayNotHasKey('limit', $options);
     }
 
     /**
@@ -110,16 +133,16 @@ class SettersTest extends TestCase
     }
 
     /**
-     * Test case for the `setTocBlacklist` method.
+     * Test case for the `setTocReservedIds` method.
      */
     public function testSetTocBlacklist()
     {
-        $blacklist = [
+        $reservedIds = [
             'myBlacklistedHeaderId',
         ];
 
-        $this->parsedownToc->setTocBlacklist($blacklist);
-        $this->assertEquals($blacklist, $this->parsedownToc->getOptions()['blacklist']);
+        $this->parsedownToc->setTocReservedIds($reservedIds);
+        $this->assertEquals($reservedIds, $this->parsedownToc->getOptions()['reserved_ids']);
     }
 
     /**

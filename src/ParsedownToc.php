@@ -15,25 +15,26 @@ if (class_exists('ParsedownExtra')) {
 
 class ParsedownToc extends ParsedownTocParentAlias
 {
-    public const VERSION = '1.5.5';
+    public const VERSION = '1.6.0';
     public const VERSION_PARSEDOWN_REQUIRED = '1.7.4';
     public const VERSION_PARSEDOWN_EXTRA_REQUIRED = '0.8.1';
     public const MIN_PHP_VERSION = '7.4';
 
     protected array $options = [];
-    protected array $defaultOptions = array(
+    protected array $defaultOptions = [
         'selectors' => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'delimiter' => '-',
-        'limit' => null,
+        'max_anchor_length' => null,
         'lowercase' => true,
         'replacements' => null,
         'transliterate' => true,
         'urlencode' => false,
-        'blacklist' => [],
-        'url' => '',
+        'reserved_ids' => [],
+        'base_url' => '',
+        'anchor_prefix' => '',
         'toc_tag' => '[toc]',
         'toc_id' => 'toc',
-    );
+    ];
 
     private array $anchorDuplicates = [];
     private array $contentsListArray = [];
@@ -70,7 +71,7 @@ class ParsedownToc extends ParsedownTocParentAlias
                 $msg_error .= '  - Required version: ' . self::VERSION_PARSEDOWN_EXTRA_REQUIRED . ' and later' . PHP_EOL;
                 throw new Exception($msg_error);
             }
-            
+
             /** @psalm-suppress DirectConstructorCall */
             parent::__construct();
         }
@@ -87,6 +88,27 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     public function setOptions(array $options): void
     {
+        // Migrate legacy 'limit' key to 'max_anchor_length' for backward compatibility
+        if (array_key_exists('limit', $options) && !array_key_exists('max_anchor_length', $options)) {
+            trigger_error('limit is deprecated, use max_anchor_length instead.', E_USER_DEPRECATED);
+            $options['max_anchor_length'] = $options['limit'];
+        }
+        unset($options['limit']);
+
+        // Migrate legacy 'blacklist' key to 'reserved_ids' for backward compatibility
+        if (array_key_exists('blacklist', $options) && !array_key_exists('reserved_ids', $options)) {
+            trigger_error('blacklist is deprecated, use reserved_ids instead.', E_USER_DEPRECATED);
+            $options['reserved_ids'] = $options['blacklist'];
+        }
+        unset($options['blacklist']);
+
+        // Migrate legacy 'url' key to 'base_url' for backward compatibility
+        if (array_key_exists('url', $options) && !array_key_exists('base_url', $options)) {
+            trigger_error('url is deprecated, use base_url instead.', E_USER_DEPRECATED);
+            $options['base_url'] = $options['url'];
+        }
+        unset($options['url']);
+
         $this->options = array_merge($this->options, $options);
     }
 
@@ -113,14 +135,28 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * Set the limit option.
+     * Set the maximum anchor length option.
      *
+     * @param int|null $length The maximum number of characters for generated anchor IDs, or null for no limit.
+     * @return void
+     */
+    public function setTocMaxAnchorLength(?int $length): void
+    {
+        if ($length !== null && $length <= 0) {
+            throw new \InvalidArgumentException('Max anchor length must be null or a positive integer, got ' . $length . '.');
+        }
+        $this->options['max_anchor_length'] = $length;
+    }
+
+    /**
+     * @deprecated Use setTocMaxAnchorLength() instead.
      * @param int|null $limit The limit to set.
      * @return void
      */
     public function setTocLimit(?int $limit): void
     {
-        $this->options['limit'] = $limit;
+        trigger_error('setTocLimit() is deprecated, use setTocMaxAnchorLength() instead.', E_USER_DEPRECATED);
+        $this->setTocMaxAnchorLength($limit);
     }
 
     /**
@@ -168,25 +204,58 @@ class ParsedownToc extends ParsedownTocParentAlias
     }
 
     /**
-     * Set the blacklist option.
+     * Set the reserved IDs option.
      *
+     * @param array $reservedIds The reserved IDs to set.
+     * @return void
+     */
+    public function setTocReservedIds(array $reservedIds): void
+    {
+        $this->options['reserved_ids'] = $reservedIds;
+    }
+
+    /**
+     * @deprecated Use setTocReservedIds() instead.
      * @param array $blacklist The blacklist to set.
      * @return void
      */
     public function setTocBlacklist(array $blacklist): void
     {
-        $this->options['blacklist'] = $blacklist;
+        trigger_error('setTocBlacklist() is deprecated, use setTocReservedIds() instead.', E_USER_DEPRECATED);
+        $this->setTocReservedIds($blacklist);
     }
 
     /**
-     * Set the url option.
+     * Set the base URL option.
      *
+     * @param string $url The base URL to set.
+     * @return void
+     */
+    public function setTocBaseUrl(string $url): void
+    {
+        $this->options['base_url'] = $url;
+    }
+
+    /**
+     * @deprecated Use setTocBaseUrl() instead.
      * @param string $url The url to set.
      * @return void
      */
     public function setTocUrl(string $url): void
     {
-        $this->options['url'] = $url;
+        trigger_error('setTocUrl() is deprecated, use setTocBaseUrl() instead.', E_USER_DEPRECATED);
+        $this->setTocBaseUrl($url);
+    }
+
+    /**
+     * Set the anchor prefix option.
+     *
+     * @param string $prefix The prefix to prepend to all generated anchor IDs.
+     * @return void
+     */
+    public function setTocAnchorPrefix(string $prefix): void
+    {
+        $this->options['anchor_prefix'] = $prefix;
     }
 
     /**
@@ -245,6 +314,11 @@ class ParsedownToc extends ParsedownTocParentAlias
                 return $Block;
             }
 
+            // If the heading text is empty, do not generate an anchor ID and do not add it to the ToC list
+            if (mb_strlen($text, 'UTF-8') === 0) {
+                return $Block;
+            }
+
             $attributes = $Block['element']['attributes'] ?? [];
             $id = $attributes['id'] ?? $this->createAnchorID($text);
             $attributes['id'] = $id;
@@ -264,7 +338,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      * @param  array $Line Array that Parsedown detected as a block type element.
      * @return void|array Array of Heading Block.
      */
-    protected function blockSetextHeader($Line, array $Block = null)
+    protected function blockSetextHeader($Line, ?array $Block = null)
     {
         // Use parent blockHeader method to process the $Line to $Block
         $Block = parent::blockSetextHeader($Line, $Block);
@@ -275,6 +349,11 @@ class ParsedownToc extends ParsedownTocParentAlias
 
             // Check if heading level is in the selectors
             if (!in_array($level, $this->options['selectors'], true)) {
+                return $Block;
+            }
+
+            // If the heading text is empty, do not generate an anchor ID and do not add it to the ToC list
+            if (mb_strlen($text, 'UTF-8') === 0) {
                 return $Block;
             }
 
@@ -330,9 +409,9 @@ class ParsedownToc extends ParsedownTocParentAlias
                 return $this->contentsListArray;
 
             default:
-                $backtrace = debug_backtrace();
-                $caller = $backtrace[0];
-                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . $caller['file'] . " on line " . $caller['line'];
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+                $caller = $backtrace[1] ?? $backtrace[0];
+                $errorMessage = "Unknown return type '{$type_return}' given while parsing ToC. Called in " . ($caller['file'] ?? 'unknown') . " on line " . ($caller['line'] ?? 'unknown');
                 throw new InvalidArgumentException($errorMessage);
         }
     }
@@ -403,7 +482,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $id = (string) $Content['id'];
             $level = (int) trim($Content['level'], 'h');
 
-            $href = $this->options['url'] . '#' . $id;
+            $href = $this->options['base_url'] . '#' . $id;
 
             $html .= sprintf(
                 '<li class="toc-level-%d"><a href="%s">%s</a>',
@@ -474,11 +553,22 @@ class ParsedownToc extends ParsedownTocParentAlias
         // Sanitize the anchor
         $text = $this->sanitizeAnchor($text);
 
-        // Truncate slug to max. characters
-        $text = mb_substr($text, 0, ($this->options['limit'] ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
+        // Fall back to 'section' if sanitization produced an empty string
+        if ($text === '') {
+            $text = 'section';
+        }
+
+        // Truncate AnchorID to max. characters
+        $text = mb_substr($text, 0, ($this->options['max_anchor_length'] !== null ? $this->options['max_anchor_length'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
+
+        // Prepend anchor prefix
+        if ($this->options['anchor_prefix'] !== '') {
+            $text = $this->options['anchor_prefix'] . $text;
+        }
 
         // Check AnchorID is unique
         $text = $this->uniquifyAnchorID($text);
+
 
         return $text;
     }
@@ -598,15 +688,15 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function uniquifyAnchorID(string $text): string
     {
-        $blacklist = $this->options['blacklist'];
+        $reservedIds = $this->options['reserved_ids'];
 
         // Initialize the count for this text if not already set
         if (!isset($this->anchorDuplicates[$text])) {
             $this->anchorDuplicates[$text] = 0;
         }
 
-        // If the text is not in the blacklist and is the first time we see it, return it as is
-        if (!in_array($text, $blacklist, true) && $this->anchorDuplicates[$text] === 0) {
+        // If the text is not in the reserved IDs and is the first time we see it, return it as is
+        if (!in_array($text, $reservedIds, true) && $this->anchorDuplicates[$text] === 0) {
             // Increment here to account for the next time we see this text
             $this->anchorDuplicates[$text]++;
             return $text;
@@ -622,11 +712,12 @@ class ParsedownToc extends ParsedownTocParentAlias
         $count = &$this->anchorDuplicates[$originalText];
 
         // Generate a unique anchor ID by appending a count to the original text
+        $delimiter = $this->options['delimiter'];
         while (true) {
             if ($count > 0) {
-                $text = $originalText . '-' . $count;
+                $text = $originalText . $delimiter . $count;
 
-                if (!in_array($text, $blacklist, true) && !isset($this->anchorDuplicates[$text])) {
+                if (!in_array($text, $reservedIds, true) && !isset($this->anchorDuplicates[$text])) {
                     break;
                 }
             }

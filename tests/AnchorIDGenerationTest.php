@@ -1,4 +1,5 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
 
 class AnchorIDGenerationTest extends TestCase
@@ -28,7 +29,7 @@ class AnchorIDGenerationTest extends TestCase
     public function testAnchorIDDuplicate()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['blacklist' => []]); // Ensure no blacklist interference
+        $this->parsedownToc->setOptions(['reserved_ids' => []]); // Ensure no reserved_ids interference
 
         $firstCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $secondCall = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
@@ -47,7 +48,7 @@ class AnchorIDGenerationTest extends TestCase
      */
     public function testAnchorIDCustomCallback()
     {
-        $customFunction = function($text, $options) {
+        $customFunction = function ($text, $options) {
             return mb_strtolower(str_replace(' ', '_', $text));
         };
         $this->parsedownToc->setCreateAnchorIDCallback($customFunction);
@@ -59,16 +60,16 @@ class AnchorIDGenerationTest extends TestCase
     }
 
     /**
-     * Test case for generating anchor IDs with blacklist.
+     * Test case for generating anchor IDs with reserved IDs.
      *
      * This test verifies that the createAnchorID method of the ParsedownToc class
-     * generates the correct anchor ID when a blacklist is set and the input text
-     * matches an item in the blacklist.
+     * generates the correct anchor ID when reserved_ids is set and the input text
+     * matches an item in the reserved IDs.
      */
     public function testAnchorIDBlacklist()
     {
         $text = "heading";
-        $this->parsedownToc->setOptions(['blacklist' => ['heading']]);
+        $this->parsedownToc->setOptions(['reserved_ids' => ['heading']]);
 
         $result = $this->invokeMethod($this->parsedownToc, 'createAnchorID', [$text]);
         $this->assertNotEquals('heading', $result);
