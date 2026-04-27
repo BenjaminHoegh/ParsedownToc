@@ -482,7 +482,7 @@ class ParsedownToc extends ParsedownTocParentAlias
             $text = 'section';
         }
 
-        // Truncate slug to max. characters
+        // Truncate AnchorID to max. characters
         $text = mb_substr($text, 0, ($this->options['limit'] !== null ? $this->options['limit'] : mb_strlen($text, 'UTF-8')), 'UTF-8');
 
         // Check AnchorID is unique
