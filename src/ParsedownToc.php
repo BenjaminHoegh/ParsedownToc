@@ -582,7 +582,7 @@ class ParsedownToc extends ParsedownTocParentAlias
      */
     protected function normalizeString(string $text)
     {
-        return mb_convert_encoding($text, 'UTF-8', mb_list_encodings());
+        return mb_convert_encoding($text, 'UTF-8', 'UTF-8');
     }
 
     /**
